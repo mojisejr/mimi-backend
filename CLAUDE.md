@@ -1,11 +1,11 @@
 ## Project Overview
 
-**Project Name**: Jaothui ID-Trace System
+**Project Name**: MimiVibe Backend
 
-**Repository**: https://github.com/mojisejr/jaothui-id-e
-**Author**: mojisejr
+**Repository**: https://github.com/your-username/mimivibe-backend
+**Author**: Your Name
 
-**Description**: A mobile-first web application designed for Thai buffalo farmers to manage livestock through digital identification, activity tracking, and farm operations management with secure role-based access control.
+**Description**: A Rust-based backend system for tarot reading application using Google Gemini LLM with LangGraph-style agent pipeline for question filtering, analysis, and detailed tarot interpretations in Thai language.
 
 ---
 
@@ -371,84 +371,85 @@ All slash commands follow this structure:
 
 ## 🏗️ Technical Architecture
 
-
 ### Core Stack
 
-- **Language**: TypeScript (Node.js)
-- **Web Framework**: Next.js 14.x with App Router
-- **Database**: PostgreSQL 15+ (via Supabase)
-- **ORM**: Prisma
-- **Authentication**: better-auth with LINE OAuth integration
-- **Frontend**: React with shadcn-ui + Tailwind CSS v4
-- **Storage**: Supabase Storage with RLS policies
-- **Deployment**: Vercel
-- **Real-time**: Supabase Real-time (future enhancement)
+- **Language**: Rust
+- **Web Framework**: TBD (Axum/Actix-web)
+- **LLM Integration**: Google Gemini API
+- **Authentication**: Environment-based API key system
+- **Agent Pipeline**: LangGraph-inspired workflow engine
+- **Data Storage**: In-memory storage (Phase 1)
+- **Deployment**: TBD
+- **Language Support**: Thai language tarot readings
 
 ### Project Structure
 
 ```
-jaothui-id-e/
+mimivibe-backend/
 ├── README.md                   # Project overview and quick start
 ├── docs/                       # Documentation and templates
-├── src/                        # Next.js source code
-│   ├── app/                    # Next.js 14 App Router pages and API routes
-│   ├── components/             # React components (shadcn/ui + custom)
-│   ├── lib/                    # Utility functions and configurations
-│   ├── prisma/                 # Database schema and migrations
-│   └── types/                  # TypeScript type definitions
-├── public/                     # Static assets
-├── .env.example                # Environment variables template
-├── package.json                # Node.js dependencies and scripts
-├── tailwind.config.ts          # Tailwind CSS configuration
-├── next.config.ts              # Next.js configuration
-└── tsconfig.json               # TypeScript configuration
-```
-
-### Database Schema
-
-```
-# Core tables for livestock management
-users (id, email, name, avatar, role, line_user_id, created_at)
-farms (id, name, code, province, description, owner_id, created_at)
-farm_members (id, farm_id, user_id, role, joined_at)
-animals (id, farm_id, tag_id, name, birth_date, gender, color, weight, height, mother_tag, father_tag, genome, status, image_url, created_at)
-activities (id, farm_id, animal_id, assigned_user_id, title, description, activity_type, scheduled_date, due_date, status, completed_at, cancelled_at, cancellation_reason, created_at)
+├── src/                        # Rust source code
+│   ├── main.rs                 # Application entry point
+│   ├── lib.rs                  # Library root
+│   ├── agents/                 # Agent implementations
+│   │   ├── mod.rs
+│   │   ├── question_filter.rs  # Question validation agent
+│   │   ├── question_analyzer.rs # Question analysis agent
+│   │   └── reading_agent.rs    # Tarot reading agent
+│   ├── api/                    # API endpoints and routes
+│   │   ├── mod.rs
+│   │   └── tarot.rs           # Tarot reading endpoints
+│   ├── auth/                   # Authentication logic
+│   │   ├── mod.rs
+│   │   └── api_key.rs         # API key validation
+│   ├── models/                 # Data models and structs
+│   │   ├── mod.rs
+│   │   ├── request.rs         # Request models
+│   │   ├── response.rs        # Response models
+│   │   └── tarot.rs           # Tarot-specific models
+│   └── utils/                  # Utility functions
+│       ├── mod.rs
+│       └── gemini.rs          # Gemini API client
+├── prompts/                    # Agent system prompts
+│   ├── QUESTION-FILTER.md      # Question filter prompt
+│   ├── QUESTION-ANALYSIS.md    # Question analysis prompt
+│   └── READING-AGENT.md        # Reading agent prompt
+├── tests/                      # Integration and unit tests
+├── Cargo.toml                  # Rust dependencies
+└── .env.local                  # Environment variables (not committed)
 ```
 
 ### Key Features
 
-- **Livestock Digital Identification**: Complete animal profiles with unique tag IDs, comprehensive tracking
-- **Multi-Farm Management**: Support for multiple farms with role-based access control
-- **Authentication System**: LINE OAuth for farm owners, traditional login for staff members
-- **Activity Management**: Feeding, medication, vaccination, breeding, and general care tracking
-- **Role-Based Access Control**: Owner vs Staff permissions with data isolation
-- **Mobile-First Interface**: Responsive design optimized for field operations
-- **Thai Language Support**: BE calendar format and localized interface
-- **Notification System**: Activity due dates, overdue tasks, and status updates
-- **Image Storage**: Animal photos with Supabase Storage and RLS policies
-- **Real-time Updates**: Activity status changes and notifications
+- **Tarot Reading System**: 3-card and 5-card tarot readings with Thai language support
+- **Agent Pipeline**: LangGraph-style workflow with sequential agent execution
+- **Question Processing**: Question filtering and analysis before tarot reading
+- **Google Gemini Integration**: Advanced LLM-powered tarot interpretations
+- **Simple Authentication**: Environment-based API key validation
+- **Structured Responses**: JSON output with detailed tarot card information
+- **Thai Language Support**: Complete tarot reading workflow in Thai
+- **Random Card Generation**: 3 or 5 card selection with traditional tarot deck
+- **Modern Architecture**: Rust-based with agent pipeline pattern
 
 ### Development Commands
 
 ```bash
-npm run dev            # Development server (default: http://localhost:3000)
-npm run build          # Production build (creates optimized .next build)
-npm run start          # Start production server
-npm test               # Run all tests
-npm run lint           # ESLint checks
-npm run type-check     # TypeScript type checking
-npx prisma studio      # Database management UI
-npx prisma migrate dev # Database migrations
+cargo run              # Run development server
+cargo build            # Build the project
+cargo test             # Run all tests
+cargo clippy           # Lint checks
+cargo fmt              # Format code
+cargo check            # Type checking without building
 ```
 
 ### Performance Metrics
 
-- **API Response Time**: Target < 200ms (p95)
-- **Page Load Time**: < 3 seconds for initial page load
-- **Concurrent Users**: Support 100+ simultaneous users
-- **Database Performance**: < 50ms per query with proper indexing
+- **API Response Time**: Target < 5 seconds (including LLM processing)
+- **LLM Processing Time**: < 3 seconds per reading
+- **Concurrent Users**: Support 100+ simultaneous requests
+- **Memory Usage**: < 512MB per instance
 - **Build Time**: ~30 seconds for production build
-- **Monthly Cost**: ~$25-50 (Vercel + Supabase)
+- **Monthly Cost**: ~$10-30 (hosting + Gemini API)
 
 ---
 

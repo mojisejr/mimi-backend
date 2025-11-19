@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "mimi-r-backend"
+name = "mimivibe-backend"
 version = "0.1.0"
