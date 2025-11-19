@@ -1,0 +1,21 @@
+# Active Context Issues Tracker
+
+## Current Active Context Issues
+
+- **#35**: Authentication System Implementation - [Implementation Ready]
+- **#51**: Database Integration - LINE Login with Supabase - [Ready for Planning] - https://github.com/mojisejr/jaothui-id-e/issues/51
+- **#71**: Single Farm MVP Design - [Planning] - https://github.com/mojisejr/jaothui-id-e/issues/71
+- **#183**: Replace argon2 with bcryptjs for Vercel compatibility - [Ready for Planning] - https://github.com/mojisejr/jaothui-id-e/issues/183
+- **#188**: Animal Search Feature Implementation - [Ready for Planning] - https://github.com/mojisejr/jaothui-id-e/issues/188
+
+## Context Status Flow
+1. **Created** - Initial context issue created
+2. **Discussion** - Iterative updates via /fcs [topic]
+3. **Ready for Planning** - Context ready for task creation
+4. **Implementation Ready** - Context ready for implementation
+
+Last Updated: 2025-11-17 - Context #188: Animal Search Feature Implementation
+https://github.com/mojisejr/jaothui-id-e/issues/188
+Context issue #201 created for temp file cleanup system
+242: Application Performance Optimization - https://github.com/mojisejr/jaothui-id-e/issues/242 - 2025-11-19 - [Ready for Planning]
+254: New Context Issue - Topic To Be Defined
