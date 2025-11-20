@@ -1,6 +1,14 @@
 [package]
 name = "mimivibe-backend"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
+
+[[bin]]
+name = "api"
+path = "src/bin/api.rs"
+
+[[bin]]
+name = "worker"
+path = "src/bin/worker.rs"
 
 [dependencies]
