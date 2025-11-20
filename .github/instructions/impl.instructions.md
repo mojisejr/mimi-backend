@@ -53,7 +53,19 @@ Implementation Workflow - Execute GitHub issue implementation based on current m
    - Extract description from issue title
    - Use naming convention: `feature/task-{issue}-{description}`
 
-3. **Mode-Specific Execution**:
+3. **Step 0: Write Tests First (Red Phase)** ⚠️ MANDATORY:
+   ```bash
+   # Create test files BEFORE implementing code
+   # Tests should fail initially (Red phase)
+   cargo test
+   # Expected: Tests fail (no implementation yet)
+   ```
+   - Write comprehensive unit tests for the new functionality
+   - Write integration tests for API endpoints or service integrations
+   - Tests document the expected behavior before code exists
+   - This ensures Test-Driven Development (TDD) workflow
+
+4. **Mode-Specific Execution**:
 
    **MANUAL Mode**:
    - Agent (Claude) implements directly using code editing tools
@@ -68,19 +80,24 @@ Implementation Workflow - Execute GitHub issue implementation based on current m
    - Create commit with proper format
    - Push branch to remote (NO PR creation)
 
-4. **Validation Requirements** (100% required):
+5. **Validation Requirements** (100% required):
    ```bash
+   ✅ Test must be written BEFORE code implementation (Red Phase)
+   ✅ Test coverage must be comprehensive for new/modified code
+   ✅ Tests must PASS (Green Phase complete)
    cargo build --release          # Build validation
    cargo clippy -- -D warnings    # Lint validation (deny warnings)
    cargo fmt -- --check           # Format validation (no changes)
-   cargo test                     # Test validation (if applicable)
+   cargo test                     # Test validation (MANDATORY)
    ```
 
-5. **Commit Format**:
+6. **Commit Format**:
    ```bash
    git commit -m "feat: [feature description]
 
    - Address #[issue-number]: [task title]
+   - Test-first implemented: Tests written before code implementation
+   - Red-Green-Refactor cycle followed (Red → Green → Refactor)
    - Build validation: 100% PASS (cargo build --release)
    - Lint validation: 100% PASS (cargo clippy -- -D warnings)
    - Format validation: 100% PASS (cargo fmt -- --check)
@@ -88,6 +105,85 @@ Implementation Workflow - Execute GitHub issue implementation based on current m
    🤖 Generated with Claude Code
    Co-Authored-By: Claude <noreply@anthropic.com>"
    ```
+
+## 🔴🟢🔵 Red-Green-Refactor Cycle (TDD)
+
+The Red-Green-Refactor cycle is the core of Test-Driven Development:
+
+### 🔴 Red Phase (Tests First)
+- **Write failing tests** for the functionality you want to implement
+- Tests document the expected behavior
+- Run tests: `cargo test` → tests FAIL (because code doesn't exist yet)
+- Example:
+  ```rust
+  // tests/question_filter_tests.rs
+  #[test]
+  fn test_empty_question_rejected() {
+    let result = filter_question("");
+    assert!(result.is_err());
+  }
+  
+  #[test]
+  fn test_valid_question_accepted() {
+    let result = filter_question("What is my future?");
+    assert!(result.is_ok());
+  }
+  ```
+
+### 🟢 Green Phase (Minimal Implementation)
+- **Write minimal code** to make the failing tests pass
+- Don't implement extra features yet
+- Focus only on passing the tests you wrote
+- Run tests: `cargo test` → tests PASS
+- Example:
+  ```rust
+  // src/agents/question_filter.rs
+  pub fn filter_question(q: &str) -> Result<String, FilterError> {
+    if q.is_empty() {
+      return Err(FilterError::EmptyQuestion);
+    }
+    Ok(q.to_string())
+  }
+  ```
+
+### 🔵 Refactor Phase (Improve Code)
+- **Refactor the code** for clarity, performance, and maintainability
+- Keep tests passing while improving code quality
+- Run tests: `cargo test` → tests still PASS
+- Run linter: `cargo clippy -- -D warnings` → zero warnings
+- Run formatter: `cargo fmt` → consistent style
+- Example improvements:
+  ```rust
+  pub fn filter_question(q: &str) -> Result<String, FilterError> {
+    q.trim()
+      .is_empty()
+      .then(|| Err(FilterError::EmptyQuestion))
+      .unwrap_or_else(|| Ok(q.trim().to_string()))
+  }
+  ```
+
+### Complete TDD Workflow Example
+```bash
+# Step 1: RED - Create failing tests
+# Write test file: tests/question_filter_tests.rs
+cargo test                                  # → FAILS (no implementation)
+
+# Step 2: GREEN - Implement minimal code
+# Write code: src/agents/question_filter.rs
+cargo test                                  # → PASSES
+cargo build --release                       # → Success
+
+# Step 3: REFACTOR - Improve code quality
+# Improve implementation while keeping tests passing
+cargo clippy -- -D warnings                 # → Zero warnings
+cargo fmt                                   # → Formatted
+cargo test                                  # → Still PASSES
+
+# Final validation
+cargo build --release                       # ✅ 100% SUCCESS
+cargo clippy -- -D warnings                 # ✅ 100% SUCCESS
+cargo test                                  # ✅ 100% SUCCESS
+```
 
 ## Mode-Specific Behavior
 

@@ -44,6 +44,18 @@
 - [EXACT single outcome this task must achieve]
 - No additional features or modifications allowed
 
+### 🧪 TEST-FIRST REQUIREMENTS (MANDATORY)
+**Tests to write BEFORE code implementation:**
+- [ ] Unit test: [test name] - [what should pass]
+- [ ] Integration test: [test name] - [API/service behavior]
+- [ ] Edge case test: [test name] - [boundary condition]
+
+**Test Acceptance Criteria:**
+- [ ] Tests must fail initially (Red phase - before implementation)
+- [ ] Tests document expected behavior
+- [ ] All tests pass after implementation (Green phase)
+- [ ] Code is refactored while tests remain passing (Refactor phase)
+
 ### 📦 DELIVERABLE (MANDATORY)
 **This task creates ONE complete deliverable:**
 - **File(s) Created**: [exact file paths that will be created]
@@ -107,6 +119,9 @@ ALTER POLICY ...;
 - [ ] `cargo fmt -- --check` passes (code formatted)
 - [ ] `cargo check` passes (type checks)
 - [ ] `cargo test` passes with zero failures
+- [ ] Test-first implemented (tests written before code)
+- [ ] Test coverage complete for all new code paths
+- [ ] Red-Green-Refactor cycle followed (Red → Green → Refactor)
 - [ ] Single deliverable works end-to-end
 - [ ] No unintended side effects
 - [ ] Code follows project patterns and style guidelines
@@ -155,10 +170,18 @@ ALTER POLICY ...;
   git checkout -b feature/task-[XXX]-[X]-[description]
   ```
 
-2. **Implementation**: Build the single deliverable exactly as specified
-  - If replacing a mock: open the file(s) listed in **FILES TO MODIFY** and replace the mock implementation there. Do not scaffold a new page or route. If the implementer finds that a new file is truly required, include an explanation in the PR and get an approver to confirm.
+2. **Step 0: Write Tests First (Red Phase)** ⚠️ MANDATORY:
+  - Write comprehensive unit tests for the new functionality
+  - Write integration tests for API endpoints or service integrations
+  - Tests should fail initially (Red phase - no implementation yet)
+  - Tests document the expected behavior before code exists
+  - Run: `cargo test` → Tests FAIL (expected at this stage)
 
-3. **Validation** (MANDATORY BEFORE COMMIT):
+3. **Implementation**: Build the single deliverable exactly as specified
+  - If replacing a mock: open the file(s) listed in **FILES TO MODIFY** and replace the mock implementation there. Do not scaffold a new page or route. If the implementer finds that a new file is truly required, include an explanation in the PR and get an approver to confirm.
+  - Follow Red-Green-Refactor cycle: Write minimal code to make tests pass (Green phase), then refactor for quality (Refactor phase)
+
+4. **Validation** (MANDATORY BEFORE COMMIT):
   ```bash
   # Build
   cargo build --release
@@ -176,13 +199,13 @@ ALTER POLICY ...;
   cargo check
   ```
 
-4. **Commit Changes**:
+5. **Commit Changes**:
    ```bash
    git add .
    git commit -m "feat: [single deliverable]..."
    ```
 
-5. **Push Branch**:
+6. **Push Branch**:
    ```bash
    git push -u origin feature/task-[XXX]-[X]-[description]
    ```

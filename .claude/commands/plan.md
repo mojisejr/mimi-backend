@@ -130,6 +130,56 @@ Uses `docs/TASK-ISSUE-TEMP.md` template which includes:
 - Implementation workflow steps
 - Quality standards checklist
 
+## 🧪 TEST-FIRST REQUIREMENTS (MANDATORY)
+
+All task planning must include explicit test-first requirements:
+
+### Test Specification Template
+```markdown
+### 🧪 TEST-FIRST REQUIREMENTS (MANDATORY)
+**Tests to write BEFORE code implementation:**
+- [ ] Unit test: [test name] - [what should pass]
+- [ ] Integration test: [test name] - [API/service behavior]
+- [ ] Edge case test: [test name] - [boundary condition]
+
+**Test Acceptance Criteria:**
+- Tests must fail initially (Red phase)
+- Tests document expected behavior
+- All tests pass after implementation (Green phase)
+- Code is refactored while tests remain passing (Refactor phase)
+```
+
+### Examples with Test-First Planning
+
+**Before (No Test-First):**
+```bash
+/plan Add authentication module
+```
+
+**After (Test-First Integrated):**
+```bash
+/plan Add authentication module with unit tests for auth validation and integration tests for API endpoints
+```
+
+**Full Example Task Description:**
+```markdown
+### 🎯 SINGLE OBJECTIVE
+- Implement question filter agent that validates tarot questions before processing
+
+### 🧪 TEST-FIRST REQUIREMENTS (MANDATORY)
+Tests to write BEFORE code implementation:
+- [ ] Unit test: `test_empty_question_rejected` - empty questions should return FilterError::EmptyQuestion
+- [ ] Unit test: `test_valid_question_accepted` - valid questions should pass validation
+- [ ] Unit test: `test_whitespace_trimming` - questions with only whitespace should be rejected
+- [ ] Integration test: `test_api_endpoint_validation` - POST /api/tarot validates question before processing
+- [ ] Edge case test: `test_special_characters_thai` - Thai characters should be accepted
+
+**Test Acceptance Criteria:**
+- [ ] All tests fail initially (Red phase - before implementation)
+- [ ] Tests pass after implementation (Green phase)
+- [ ] Code is refactored for quality while tests remain passing (Refactor phase)
+```
+
 ## Mode-Specific Next Steps
 
 ### MANUAL Mode
@@ -152,11 +202,18 @@ All tasks require 100% validation:
 - **Type check validation**: `cargo check`
 - **Test validation**: `cargo test` (if available)
 
+### Test-First Requirements
+- All tasks MUST specify which tests need to be written first
+- Test case specification is part of task description
+- Tests must be written BEFORE code implementation (Red phase)
+- Test coverage must be comprehensive for new/modified code
+
 ### Enhanced Validation Context
    - **Dependencies verified**: Based on actual `Cargo.toml` analysis
 - **Components confirmed**: Referenced components exist in codebase
 - **Patterns validated**: Follow established codebase patterns
 - **Scope realistic**: MVP-appropriate implementation requirements
+- **Test-First**: Tests written before code implementation
 
 ## Workflow Integration
 
@@ -229,6 +286,9 @@ if (validation.missingRequirements.length > 0) {
 - Current mode affects task assignment and implementation workflow
 - Ensure context is ready before creating tasks
 - **NEW**: All task requirements validated against actual codebase reality
+- **TEST-FIRST MANDATORY**: All tasks must include explicit test-first requirements
+- Tests must be written BEFORE code implementation
+- Test coverage is mandatory, not optional
 
 ### Implemented Hallucination Prevention Features:
 - ✅ **Real codebase analysis**: Uses CodebaseAnalyzer for actual dependency and component scanning

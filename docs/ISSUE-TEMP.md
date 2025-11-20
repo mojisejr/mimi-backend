@@ -50,6 +50,20 @@
 - [Feature/Component ที่ไม่ต้องทำ]
 - [Functionality ที่ไม่ต้องรองรับใน context นี้]
 
+### 🧪 TEST CASES / ACCEPTANCE TESTS (TDD)
+**Tests that will be needed for this context:**
+- [ ] Unit test: [test name] - [what should pass/fail]
+- [ ] Integration test: [test name] - [API/service behavior]
+- [ ] Edge case test: [test name] - [boundary condition]
+
+**Example Test Cases Structure:**
+- [ ] Unit test: validate question format - empty strings should be rejected
+- [ ] Unit test: validate question length - questions over 500 chars should be rejected
+- [ ] Integration test: API endpoint accepts valid questions - POST /api/tarot with valid question
+- [ ] Integration test: API endpoint rejects invalid questions - POST /api/tarot with empty question
+- [ ] Edge case test: special characters handling - Thai characters should work correctly
+- [ ] Edge case test: whitespace handling - questions with only whitespace should be rejected
+
 ### 🏗️ TECHNICAL ARCHITECTURE
 **System Components:**
 - **Frontend Components**: [components/pages ที่จะ implement]
@@ -127,6 +141,12 @@
 - [ ] Architecture decisions are confirmed
 - [ ] Technology stack is selected
 - [ ] Implementation patterns are defined
+
+✅ **Test cases for this context are identified**
+- [ ] Unit tests are specified
+- [ ] Integration tests are specified
+- [ ] Edge case tests are specified
+- [ ] Test case coverage is adequate for scope
 
 ✅ **Dependencies are identified**
 - [ ] External dependencies are listed
