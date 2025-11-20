@@ -25,6 +25,188 @@ User (Frontend) → API Gateway → Authentication → Agent Pipeline → Respon
 6. **Agent 3: Reading Agent** - Generate tarot reading prediction
 7. **Response Formatting** - Return structured JSON response
 
+### Queue & Worker Architecture (Issue-Queue-001)
+
+This project uses an LLM-heavy pipeline that can benefit from asynchronous job processing. Based on internal discussion (see Issue #1 / ISSUE-QUEUE-001), the following decisions and guidance are recommended for the PRD and implementation:
+
+- **Queue Technology (MVP):** Use Upstash Redis Streams as the managed queue for LLM job requests. Upstash provides a hosted Redis Streams product that's suitable for simple, reliable job delivery in the MVP phase.
+- **Monorepo Layout:** Keep both the API and the background worker in the same repository (monorepo). Implement as a Rust workspace with multiple binaries:
+    - `src/bin/api.rs` — Axum HTTP API server (handles requests, validation, auth, and enqueues jobs)
+    - `src/bin/worker.rs` — Background consumer that reads from Redis Streams and executes LLM pipelines (Agent Pipeline)
+    - `src/lib.rs` — Shared libraries: models, DB access, prompt manager, utils, and pipeline orchestration
+- **Job Flow:** API enqueues a job (serialized request + metadata) to Upstash Redis Streams. Worker consumers claim/process stream entries, call Gemini/LLM, persist results to database (e.g., `tarot_readings`), and optionally push notifications or update job status.
+- **Deployment Model:** Deploy both services from the same repo to Render (or another host) as two separate services:
+    - `mimivibe-api` (Web Service) — runs `cargo run --bin api` or built container `CMD` for API
+    - `mimivibe-worker` (Background Service) — runs `cargo run --bin worker` or built container `CMD` for worker
+    - Configure per-service environment variables/secrets in the platform dashboard (separate Upstash credentials, DB credentials, and prompt secrets per environment).
+- **Docker / CI:** Provide a multi-binary `Dockerfile` or separate images per service. CI pipeline must build and test both binaries; deployment jobs should publish images or trigger Render auto-deploy on push to main/staging.
+- **Security & Operations Notes:**
+    - Keep prompt templates and sensitive config out of source (use base64 / secret manager or remote prompt service).
+    - Limit access to Upstash keys and provide separate keys per environment and per service where possible.
+    - Instrument job processing metrics (processing time, failure rates, queue length) and add alerts for backlog growth or repeated LLM failures.
+
+These items reflect the decisions recorded in Issue #1 and should be integrated into architecture docs and runbooks.
+
+### Job schema & queue design (detailed)
+
+ต่อไปนี้เป็นรูปแบบและแนวทางการออกแบบ `job` ที่เรียบง่ายแต่ทนทาน (simple & robust) เพื่อใช้กับ Upstash Redis Streams และการเก็บสถานะใน PostgreSQL — ข้อมูลนี้สามารถแยกเป็นไฟล์ `docs/queues.md` / `docs/architecture.md` ได้ภายหลัง:
+
+- จุดหลัก:
+    - เก็บ `payload` เป็น JSONB ใน DB แต่ใน Redis Streams ให้เก็บเป็น field `payload` (JSON string) พร้อม metadata แบบแยกฟิลด์เพื่อให้ค้นหา/route ได้สะดวก
+    - เวอร์ชัน schema และ prompt: ใส่ `schema_version` และ `prompt_version` ในทุกงาน เพื่อรองรับการเปลี่ยน prompt/format ในอนาคต
+    - Idempotency: ให้ API สร้าง `dedupe_key` (เช่น HMAC(user_id + normalized_question)) และตรวจสอบก่อน enqueue
+    - Retry/DLQ: นโยบาย default `max_attempts = 5`, exponential backoff base=2s, cap=60s, full jitter
+    - Delayed retries: ใช้ Redis Sorted Set (`jobs:delayed`) สำหรับ scheduling ของ retry และ scheduler task ที่ย้ายรายการกลับไปยัง stream เมื่อถึงเวลา
+    - Visibility lease: ใช้ Redis Streams consumer groups + XPENDING/XCLAIM เพื่อตรวจจับงานค้างและ reclaim
+
+#### Redis Streams entry (ตัวอย่าง fields)
+
+- stream key: `jobs:stream`
+- consumer group: `jobs:group`
+- fields (key/value):
+    - `job_id`: UUID
+    - `type`: `tarot_reading` | `notification` | `maintenance` ...
+    - `schema_version`: string (เช่น `1`)
+    - `prompt_version`: string (เช่น `v2025-11-20-a`)
+    - `dedupe_key`: optional string
+    - `payload`: JSON string (minimal, see payload schema)
+    - `created_at`: ISO8601 timestamp
+    - `attempts`: integer (เริ่มที่ 0)
+    - `max_attempts`: integer (default 5)
+    - `visibility_timeout_secs`: integer (default 60)
+    - `priority`: optional (low|normal|high)
+    - `trace_id`: optional string (for correlation)
+
+ตัวอย่าง `payload` (value ของฟิลด์ `payload`):
+```json
+{
+    "user_id": "3fa85f64-...",
+    "question": "อยากรู้เรื่องการงานในปีหน้า",
+    "card_count": 3,
+    "meta": { "locale": "th", "source": "mobile" }
+}
+```
+
+#### Database schema (Postgres) — minimal tables (SQL examples)
+
+1) ตาราง `jobs` — เก็บสถานะ authoritative ของงาน
+
+```sql
+CREATE TABLE jobs (
+    id UUID PRIMARY KEY,
+    type TEXT NOT NULL,
+    schema_version TEXT NOT NULL DEFAULT '1',
+    prompt_version TEXT,
+    dedupe_key TEXT,
+    payload JSONB NOT NULL,
+    status TEXT NOT NULL DEFAULT 'queued', -- queued, processing, succeeded, failed, dlq
+    attempts INT NOT NULL DEFAULT 0,
+    max_attempts INT NOT NULL DEFAULT 5,
+    visibility_timeout_secs INT DEFAULT 60,
+    worker_id TEXT,
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    last_error TEXT
+);
+```
+
+2) ตาราง `job_attempts` — ประวัติการพยายามประมวลผล
+
+```sql
+CREATE TABLE job_attempts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    job_id UUID REFERENCES jobs(id) ON DELETE CASCADE,
+    attempt_number INT NOT NULL,
+    worker_id TEXT,
+    started_at TIMESTAMPTZ,
+    finished_at TIMESTAMPTZ,
+    success BOOLEAN,
+    error TEXT,
+    processing_time_ms INT
+);
+```
+
+การทำงาน (workflow) แบบสั้น:
+- เมื่อ API รับคำขอ: validate → คำนวณ `dedupe_key` → upsert row ใน `jobs` (ถ้ามี job เดิมใน queued/processing ให้คืน `job_id`) → XADD เข้า `jobs:stream` และตอบ `202 Accepted` พร้อม `job_id` และ `trace_id` (optional)
+- Worker: XREADGROUP อ่านรายการ → XACK หลังประมวลผลสำเร็จ (หรือ XCLAIM/XPENDING สำหรับ reclaim) → อัพเดต `jobs.status` และบันทึก `job_attempts`
+
+#### Retry/backoff & delayed retries
+- policy:
+    - `max_attempts = 5`
+    - base backoff = 2s, exponential backoff: delay = min(cap, base * 2^(attempts-1))
+    - cap = 60s, apply full jitter (random 0..delay)
+- implementation (robust):
+    - เมื่อเกิดความล้มเหลวชั่วคราว (LLM timeout, 5xx), workerจะ `XPENDING`/บันทึกความล้มเหลว แล้ว `ZADD jobs:delayed score=scheduled_ts member=job_id` และ XACK entry เดิม
+    - Scheduler (สามารถเป็น worker ตัวเดียวหรือ task ใน worker loop) จะ `ZRANGEBYSCORE jobs:delayed -inf now` แล้ว `XADD jobs:stream` เพื่อ re-enqueue งานที่พร้อม
+    - เมื่อ attempts >= max_attempts → mark `jobs.status='dlq'` และ `XADD jobs:dlq` พร้อมข้อมูล error และ alert
+
+#### Visibility lease & consumer groups
+- ใช้ `XREADGROUP` เพื่อดึงงานโดย consumer group; เมื่อ worker รับงาน ให้ตั้ง `jobs.worker_id` และ `jobs.status='processing'`
+- หาก worker ล่ม ให้ใช้ `XPENDING`/`XCLAIM` เพื่อนำงานกลับมาให้ worker อื่น process
+
+#### Dead-letter queue (DLQ)
+- DLQ stream: `jobs:dlq` — บันทึก job_id, last_error, failed_at
+- เกณฑ์: `attempts >= max_attempts` หรือ error type = permanent
+- หาก DLQ spike เกิน threshold → trigger alert (example: dlq_rate > 5% หรือ > N failures ใน 15 นาที)
+
+#### Idempotency & deduplication
+- API ต้องสร้าง `dedupe_key` (e.g., HMAC(user_id + normalized_question))
+- ก่อน enqueue ให้ตรวจ `jobs` table ว่ามี `dedupe_key` และ status IN (queued, processing) → หากมี ให้ return existing job_id
+- Worker เมื่อ persist ผลลัพธ์ ให้ตรวจซ้ำก่อน insert ที่ `tarot_readings` โดยใช้ `job_id` หรือ `dedupe_key`
+
+#### Observability (metrics & tracing)
+- Metrics to emit:
+    - `queue_length` (gauge) — XINFO STREAM หรือ approximate length
+    - `jobs_processed_total`, `jobs_failed_total`, `jobs_dlq_total` (counters)
+    - `job_processing_duration_ms` (histogram) — p50/p95/p99
+    - `jobs_in_progress` (gauge)
+- Tracing/Correlation:
+    - propagate `trace_id` from API → stream → worker → LLM call
+    - integrate with OpenTelemetry for distributed traces
+Alerts examples:
+    - queue_length > X for Y minutes
+    - job_fail_rate > 5% over 15m
+    - long running jobs p95 > S seconds
+
+#### MVP Observability (Sentry-first recommendation)
+
+สำหรับการขึ้น MVP: แนะนำให้เริ่มด้วย "Sentry-first" เป็นทางเลือกแบบประหยัดและรวดเร็วก่อนที่จะตั้ง Prometheus/OTel เต็มรูปแบบ
+
+- ใช้ **Sentry** เพียงอย่างเดียวในช่วงแรกเพื่อจับ error, stack traces, และ basic performance (transaction traces) โดยไม่ต้องตั้ง metric infra เพิ่มเติม
+- เก็บ `structured JSON logs` (stdout) พร้อม `request_id/trace_id` เพื่อช่วย debug เพิ่มเติมและให้ platform logs aggregator (Render/Heroku) อ่านได้
+- เพิ่ม `GET /health` (readiness/liveness) สำหรับ platform check; เว้นการ expose `/metrics` จนกว่าจะต้องการ alert/SLI ที่ละเอียดขึ้น
+- ข้อดี: ติดตั้งเร็ว ลดค่า infra/운영ค่าใช้จ่าย, ได้ข้อมูลพอสำหรับ debugging และตั้ง alert เบื้องต้นผ่าน Sentry integrations (Slack/Email)
+- เมื่อต้องการ long-term metrics / SLOs ให้ย้ายไปสู่ Prometheus/OTel + Grafana หรือใช้ managed provider (Grafana Cloud / AWS AMP)
+
+#### Security & privacy notes for schema
+- อย่าส่ง PII ในสตรีมโดยตรง หากจำเป็นให้เก็บ `user_id` เท่านั้นและเก็บรายละเอียดใน DB ที่เข้ารหัส
+- คำถาม/ข้อความถือเป็นข้อมูล sensitive — ต้องเข้ารหัสเมื่อเก็บใน DB หรือเก็บใน field ที่จำกัดสิทธิ์เข้าถึง
+- แยก secrets: Upstash key, Gemini key, DB credentials เป็น secrets per-environment
+
+#### Example Redis commands (conceptual)
+```text
+# Add job
+XADD jobs:stream * job_id 3fa85f64-... type tarot_reading schema_version 1 payload '{"user_id":"...","question":"...","card_count":3}' created_at "2025-11-20T08:00:00Z" attempts 0 max_attempts 5 visibility_timeout_secs 60 dedupe_key "user:123:abc123" trace_id "req-abc"
+
+# Create consumer group (one-time)
+XGROUP CREATE jobs:stream jobs:group $ MKSTREAM
+
+# Read for processing (worker)
+XREADGROUP GROUP jobs:group worker-1 COUNT 1 BLOCK 5000 STREAMS jobs:stream >
+```
+
+#### Next steps (ready to split)
+- เพิ่มส่วนนี้ลงใน `docs/PRD.md` เพื่อเป็น single source of truth แล้วค่อยแตกเป็น `docs/queues.md` และ `docs/architecture.md` ตาม Action Items
+- สร้าง migration SQL สำหรับ `jobs` และ `job_attempts` (ตัวอย่างข้างต้น)
+- สร้าง skeleton worker ที่ใช้ XREADGROUP + ZSET scheduler + DLQ handling
+
+### Action Items (from Issue #1)
+
+- **Add** `docs/ARCHITECTURE.md` with a dedicated section describing the monorepo layout, Upstash Redis Streams usage, Render deployment steps for API and Worker, and recommended environment/secret configuration.
+- **Create** skeleton binaries: `src/bin/api.rs` and `src/bin/worker.rs` (shared `src/lib.rs`) and add CI steps to build/test both.
+- **Add** monitoring: queue metrics, worker health checks, and simple retry/backoff logic for LLM API calls.
+
+
 ---
 
 ## Functional Requirements

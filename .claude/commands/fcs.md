@@ -25,7 +25,7 @@ When creating a new context issue:
 2. **Check template**: Verify `docs/ISSUE-TEMP.md` exists
 3. **Reality-Grounded Context Analysis**:
    - Run codebase analysis using `.claude/utils/codebase-analyzer.js`
-   - Scan `package.json` for available dependencies
+   - Scan `Cargo.toml` for available dependencies
    - Analyze existing components and patterns
    - Validate proposed topic against current capabilities
    - Generate "Current State vs Proposed" analysis
@@ -63,7 +63,7 @@ Uses `docs/ISSUE-TEMP.md` template which contains:
 The enhanced `/fcs` command now performs actual codebase analysis:
 
 ### Reality Check Process:
-1. **Dependency Scan**: Checks `package.json` for installed packages
+1. **Dependency Scan**: Checks `Cargo.toml` for installed crates
 2. **Component Analysis**: Scans `src/components` for existing UI components
 3. **Pattern Detection**: Identifies existing patterns (API routes, auth, forms)
 4. **Capability Validation**: Validates if proposed topic is realistic
@@ -82,7 +82,7 @@ The enhanced `/fcs` command now performs actual codebase analysis:
 **Topic "Payment System" Analysis:**
 - ✅ Realistic: Can implement using existing patterns
 - ❌ Missing: Payment processing library (stripe)
-- 💡 Recommendation: Install stripe npm package first
+- 💡 Recommendation: Add a server-side Stripe integration using an appropriate Rust crate or call Stripe's HTTP API from the backend
 - 🏗️ Implementation: Use existing Card/Dialog components
 ```
 

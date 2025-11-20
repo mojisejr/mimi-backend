@@ -70,10 +70,10 @@ Implementation Workflow - Execute GitHub issue implementation based on current m
 
 4. **Validation Requirements** (100% required):
    ```bash
-   npm run build                  # Build validation
-   npm run lint                   # Lint validation
-   npm run type-check             # Type check validation
-   npm test                       # Test validation (if applicable)
+   cargo build --release          # Build validation
+   cargo clippy -- -D warnings    # Lint validation (deny warnings)
+   cargo fmt -- --check           # Format validation (no changes)
+   cargo test                     # Test validation (if applicable)
    ```
 
 5. **Commit Format**:
@@ -81,9 +81,9 @@ Implementation Workflow - Execute GitHub issue implementation based on current m
    git commit -m "feat: [feature description]
 
    - Address #[issue-number]: [task title]
-   - Build validation: 100% PASS (npm run build)
-   - Lint validation: 100% PASS (npm run lint)
-   - Type validation: 100% PASS (npm run type-check)
+   - Build validation: 100% PASS (cargo build --release)
+   - Lint validation: 100% PASS (cargo clippy -- -D warnings)
+   - Format validation: 100% PASS (cargo fmt -- --check)
 
    🤖 Generated with Claude Code
    Co-Authored-By: Claude <noreply@anthropic.com>"

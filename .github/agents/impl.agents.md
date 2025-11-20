@@ -38,11 +38,11 @@ A specialized GitHub agent that implements GitHub issues following the template-
 5. **Commit Formatting**: Standardized commit message format
 
 ### Validation Requirements (100% Mandatory)
-- Build validation: `npm run build` (Next.js project)
-- Lint validation: `npm run lint`
-- Format validation: Auto-formatting (prettier)
-- Type check validation: `npx tsc --noEmit`
-- Test validation: `npm run test` (if applicable)
+- Build validation: `cargo build --release`
+- Lint validation: `cargo clippy -- -D warnings`
+- Format validation: `cargo fmt -- --check`
+- Type check validation: `cargo check`
+- Test validation: `cargo test` (if applicable)
 
 ## Usage
 
@@ -72,9 +72,9 @@ A specialized GitHub agent that implements GitHub issues following the template-
 feat: [feature description]
 
 - Address #[issue-number]: [task title]
-- Build validation: 100% PASS (npm run build)
-- Lint validation: 100% PASS (npm run lint)
-- Format validation: 100% PASS (prettier)
+   - Build validation: 100% PASS (cargo build --release)
+   - Lint validation: 100% PASS (cargo clippy -- -D warnings)
+   - Format validation: 100% PASS (cargo fmt -- --check)
 
 🤖 Generated with Claude Code
 Co-Authored-By: Claude <noreply@anthropic.com>

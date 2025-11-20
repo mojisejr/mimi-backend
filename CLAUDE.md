@@ -15,7 +15,7 @@
 
 - ❌ **NEVER merge PRs yourself** - Provide PR link and wait for user instructions
 - ❌ **NEVER work on main/staging branches** - Always use feature branches
-- ❌ **NEVER delete critical files** (.env, .git/, node_modules/, package.json, lib/database/)
+- ❌ **NEVER delete critical files** (.env, .git/, `Cargo.toml`, `Cargo.lock`, `src/`)
 - ❌ **NEVER commit sensitive data** (API keys, passwords, secrets) - Use environment variables
 - ❌ **NEVER skip 100% validation** (build, lint, test) - Must pass completely
 - ❌ **NEVER use git push --force** - Only use --force-with-lease when absolutely necessary
@@ -26,10 +26,10 @@
 - ✅ **ALWAYS** sync main branch before any implementation: `git checkout main && git pull origin main`
 - ✅ **ALWAYS** verify task issue exists: `#[issue-number]` before `=impl`
 - ✅ **ALWAYS** use feature branch naming: `feature/task-[issue-number]-[description]`
-- ✅ **ALWAYS** ensure 100% build success before commit: `npm run build`
-- ✅ **ALWAYS** ensure 100% lint pass before commit: `npm run lint`
+- ✅ **ALWAYS** ensure 100% build success before commit: `cargo build --release`
+- ✅ **ALWAYS** ensure 100% lint pass before commit: `cargo clippy -- -D warnings`
 - ✅ **ALWAYS** use template-guided workflow with proper context validation
-- ✅ **ALWAYS** verify code formatting: Prettier auto-formatting (consistent formatting)
+- ✅ **ALWAYS** verify code formatting: `cargo fmt -- --check` (consistent formatting)
 
 ---
 
@@ -162,11 +162,11 @@ All slash commands follow this structure:
 
 1. **Create Feature Branch**: `git checkout -b feature/task-[issue-number]-[description]`
 2. **Execute Implementation**: Follow task requirements, use TodoWrite for complex tasks
-3. **Build Validation**: `npm run build` (100% success - zero errors)
-4. **Lint Validation**: `npm run lint` (100% pass - zero warnings)
-5. **Format Check**: Prettier auto-formatting (consistent formatting)
-6. **Type Check**: `npm run type-check` (comprehensive type checking)
-7. **Run Tests**: `npm test` (if applicable)
+3. **Build Validation**: `cargo build --release` (100% success - zero errors)
+4. **Lint Validation**: `cargo clippy -- -D warnings` (100% pass - zero warnings)
+5. **Format Check**: `cargo fmt -- --check` (consistent formatting)
+6. **Type Check**: `cargo check` (comprehensive type checking)
+7. **Run Tests**: `cargo test` (if applicable)
 8. **Commit Changes**:
 
    ```bash
@@ -174,9 +174,9 @@ All slash commands follow this structure:
    git commit -m "feat: [feature description]
 
    - Address #[issue-number]: [task title]
-   - Build validation: 100% PASS (npm run build)
-   - Lint validation: 100% PASS (npm run lint)
-   - Format validation: 100% PASS (prettier)
+   - Build validation: 100% PASS (`cargo build --release`)
+   - Lint validation: 100% PASS (`cargo clippy -- -D warnings`)
+   - Format validation: 100% PASS (`cargo fmt -- --check`)
 
    🤖 Generated with Claude Code
    Co-Authored-By: Claude <noreply@anthropic.com>"
@@ -457,13 +457,13 @@ cargo check            # Type checking without building
 
 ### Code Quality Requirements
 
-- **TypeScript**: Strict typing with comprehensive type coverage
-- **ESLint**: Zero warnings (enforced via Next.js configuration)
-- **Prettier**: Consistent code formatting across project
-- **Build**: 100% success rate before commit
-- **Tests**: Unit tests for critical paths (auth, data validation)
-- **Type Safety**: Full TypeScript coverage with proper interfaces
-- **Error Handling**: Comprehensive error boundaries and validation
+- **Rust**: Use idiomatic Rust with strong type coverage
+- **Clippy**: Zero warnings (enforced in CI with `cargo clippy -- -D warnings`)
+- **Rustfmt**: Consistent code formatting (`cargo fmt` / `cargo fmt -- --check`)
+- **Build**: 100% success rate before commit (`cargo build --release`)
+- **Tests**: Unit and integration tests for critical paths
+- **Type Safety**: Ensure `cargo check` passes
+- **Error Handling**: Comprehensive error handling and domain-specific errors
 
 ### API Quality Standards
 

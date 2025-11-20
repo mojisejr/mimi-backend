@@ -597,7 +597,7 @@ CREATE POLICY "activities_update_member_farms" ON activities
     );
 ```
 
-### Migration Strategy
+#### Migration Strategy
 
 #### Initial Migration
 ```prisma
@@ -623,34 +623,39 @@ ALTER TABLE activities ENABLE ROW LEVEL SECURITY;
 -- (Policy definitions as shown above)
 ```
 
+npx prisma migrate reset
 #### Migration Process
 ```bash
-# Generate migration
-npx prisma migrate dev --name initial_schema
+# Generate migration (tool-dependent)
+# Example using sqlx-cli:
+#   sqlx migrate add initial_schema
+#   sqlx migrate run
 
-# Apply migration
-npx prisma migrate deploy
+# Or, if the repo includes a migration binary:
+#   cargo run --bin migrate -- add initial_schema
+#   cargo run --bin migrate -- run
 
-# Reset database (development only)
-npx prisma migrate reset
+# Apply migrations (production)
+#   sqlx migrate run
+
+# Reset database (development only, tool-dependent)
+#   sqlx database reset
 ```
 
 ### Data Access Patterns
 
-#### Prisma Client Configuration
-```typescript
-// lib/db.ts
-import { PrismaClient } from '@prisma/client'
+#### Database Client Configuration (Rust example)
+```rust
+// src/db.rs (example using sqlx)
+use sqlx::postgres::PgPoolOptions;
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
+pub async fn create_db_pool(database_url: &str) -> sqlx::Pool<sqlx::Postgres> {
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect(database_url)
+        .await
+        .expect("Failed to create Postgres pool")
 }
-
-export const db = globalForPrisma.prisma ?? new PrismaClient({
-  log: ['query'],
-})
-
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db
 ```
 
 #### Secure Query Patterns

@@ -30,10 +30,10 @@ This directory contains GitHub agents that implement the Jaothui ID-Trace workfl
 - **10-Point Checklist**: Comprehensive reality validation before task creation
 
 ### Comprehensive Validation
-- **Next.js Project**: Correct validation commands (`npm run build`, `npm run lint`, etc.)
+- **Rust Project**: Correct validation commands (`cargo build --release`, `cargo clippy`, etc.)
 - **100% Success Rate**: Mandatory validation passing before commits/PRs
-- **Type Safety**: `npx tsc --noEmit` for comprehensive type checking
-- **Testing**: `npm run test` when available (setup required first)
+- **Type Safety**: `cargo check` for type checking
+- **Testing**: `cargo test` when available
 
 ### Structured Workflow
 - **Template-Guided**: All agents use structured templates for consistency
@@ -51,10 +51,10 @@ This directory contains GitHub agents that implement the Jaothui ID-Trace workfl
 
 ### Build and Quality
 ```bash
-npm run build          # Build validation (Next.js)
-npm run lint           # ESLint checks
-npx tsc --noEmit       # TypeScript compilation
-npm test               # Test validation (if available)
+cargo build --release  # Build validation (Rust)
+cargo clippy -- -D warnings  # Clippy linting (treat warnings as errors)
+cargo check            # Type checking
+cargo test             # Test validation (if available)
 ```
 
 ### Git Workflow
@@ -135,12 +135,13 @@ git push -u origin [branch]  # Push to remote
 - **Label Management**: Automatic label creation and application
 - **Pull Requests**: Structured PR creation to staging branch
 
-## Agent Dependencies
+
+### Agent Dependencies
 
 ### Required Tools
 - **GitHub CLI**: `gh` command for GitHub operations
 - **Git**: Version control operations
-- **Node.js/NPM**: Project validation commands
+- **Rust toolchain**: `cargo`, `rustc`, and optional `sqlx-cli` or migration tools
 
 ### Required Files
 - **Templates**: `docs/` directory templates
@@ -236,10 +237,10 @@ Agent will:
 - **Network**: Check internet connectivity for GitHub operations
 
 ### Validation Failures
-- **Build Errors**: Fix code issues before proceeding
-- **Lint Warnings**: Resolve all ESLint warnings
-- **Type Errors**: Fix TypeScript compilation errors
-- **Test Failures**: Resolve failing tests (when available)
+- **Build Errors**: Fix code issues before proceeding (`cargo build`)
+- **Lint Warnings**: Resolve all Clippy warnings (`cargo clippy`)
+- **Type Errors**: Fix type errors (`cargo check`)
+- **Test Failures**: Resolve failing tests (`cargo test`)
 
 ### Knowledge Base Issues
 - **Duplicate IDs**: Always run `/khub` before `/kupdate`

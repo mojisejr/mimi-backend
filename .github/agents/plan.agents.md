@@ -21,7 +21,7 @@ A specialized GitHub agent that creates atomic task GitHub Issues using template
 ### Phase 1: Hallucination Prevention Analysis
 1. **Codebase Analysis**:
    - Scan existing components and patterns
-   - Check `package.json` for installed dependencies
+   - Check `Cargo.toml` for installed dependencies
    - Verify available technologies and tools
    - Review current architecture and file structure
 
@@ -38,7 +38,7 @@ A specialized GitHub agent that creates atomic task GitHub Issues using template
 
 4. **Hallucination Prevention Checklist**:
    - ✅ Codebase components analyzed?
-   - ✅ Dependencies verified in package.json?
+   - ✅ Dependencies verified in `Cargo.toml`?
    - ✅ Previous issue context checked?
    - ✅ Technology stack validated?
    - ✅ Implementation patterns reviewed?
@@ -102,14 +102,14 @@ Uses `docs/TASK-ISSUE-TEMP.md` which includes:
 ## Validation Requirements
 
 All created tasks require 100% validation:
-- **Build validation**: `npm run build` (Next.js project)
-- **Lint validation**: `npm run lint`
-- **Format validation**: Auto-formatting (prettier)
-- **Type check validation**: `npx tsc --noEmit`
-- **Test validation**: `npm run test` (if available)
+- **Build validation**: `cargo build --release`
+- **Lint validation**: `cargo clippy -- -D warnings`
+- **Format validation**: `cargo fmt -- --check`
+- **Type check validation**: `cargo check`
+- **Test validation**: `cargo test` (if available)
 
 ### Enhanced Validation Context
-- **Dependencies verified**: Based on actual `package.json` analysis
+   - **Dependencies verified**: Based on actual `Cargo.toml` analysis
 - **Components confirmed**: Referenced components exist in codebase
 - **Patterns validated**: Follow established codebase patterns
 - **Scope realistic**: MVP-appropriate implementation requirements
@@ -126,7 +126,7 @@ All created tasks require 100% validation:
 
 - ❌ Never creates local .md files - Always creates GitHub Issues
 - ❌ Never assumes components exist without verification
-- ❌ Never requires libraries not in package.json
+   - ❌ Never requires libraries not in `Cargo.toml`
 - ✅ Always analyzes codebase before suggesting implementations
 - ✅ Always validates dependencies and patterns
 - ✅ Always includes realistic scope and requirements
@@ -144,4 +144,4 @@ All created tasks require 100% validation:
 - `docs/TASK-ISSUE-TEMP.md` - Task issue template
 - GitHub Issues - Stores task definitions and requirements
 - `.claude/current_mode` - Determines task assignment
-- `package.json` - Dependency verification source
+ - `Cargo.toml` - Dependency verification source

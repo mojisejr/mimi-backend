@@ -10,8 +10,9 @@
 - **Independent Execution**: No dependency chains or multiplexing
 - **Complete Isolation**: Each task creates its own feature branch
 - **100% Self-Contained**: All requirements and specifications included
-- **Build Validation**: Must pass `npm run build` with 100% success
-- **Zero Linter Errors**: Must pass `npm run lint` with zero violations
+- **100% Self-Contained**: All requirements and specifications included
+- **Build Validation**: Must pass `cargo build --release` (or `cargo build`) with 100% success
+- **Zero Linter Errors**: Must pass `cargo clippy -- -D warnings` with zero warnings/errors
 
 ### 🚫 FORBIDDEN PATTERNS
 - ❌ **Chain Dependencies**: Task B depending on Task A completion
@@ -57,15 +58,23 @@
 - **Authentication**: [AUTH_METHOD] (e.g., OAuth, JWT)
 - **Testing**: [TEST_TOOLING] (e.g., Jest, pytest)
 
-### 📁 FILES TO CREATE (EXACT LIST)
+### 📁 FILES TO CREATE (EXACT LIST) (Rust project examples)
 ```
-src/[exact-path]/[filename].tsx
-src/[exact-path]/[filename].test.tsx
-lib/[exact-path]/[service].ts
+src/[exact-path]/mod.rs
+src/[exact-path]/handler.rs
+tests/[exact-path]_tests.rs
+migrations/[timestamp]_create_table.sql
+```
+
+### 🔁 FILES TO MODIFY (EXACT LIST)
+```
+src/[exact-path]/[existing-file].tsx    # exact file(s) that must be edited (replace mock)
+src/[exact-path]/[existing-file].test.tsx # tests to update
 ```
 
 ### 🔧 EXACT IMPLEMENTATION REQUIREMENTS
 - **No modifications to existing files** (unless specified)
+  - If the task is intended to replace an existing mock or placeholder, list the exact files under "FILES TO MODIFY (EXACT LIST)" above. The implementer MUST modify those files rather than creating new pages/routes unless a new file is explicitly listed under "FILES TO CREATE (EXACT LIST)".
 - **Complete type definitions/interfaces** for all data structures (per project language)
 - **Comprehensive error handling** with user-friendly messages
 - **Loading states** for all async operations (if applicable)
@@ -83,27 +92,33 @@ CREATE TABLE IF NOT EXISTS [table_name] (
 ALTER POLICY ...;
 ```
 
-### 🎨 UI/UX REQUIREMENTS
-- **Design System**: Follow existing shadcn/ui patterns exactly
-- **Mobile Optimization**: LINE WebView (320px minimum width)
-- **Large Touch Targets**: 44px minimum for elderly users
-- **High Contrast**: 4.5:1 minimum color contrast ratio
-- **Thai Language Support**: Proper font loading and text handling
+### 🎨 UI/UX REQUIREMENTS (if task touches frontend)
+- If the task includes frontend work, clearly mark it as such and provide exact frontend file paths and tech stack. For backend-only Rust tasks, frontend/UI requirements are NOT required.
 
-### 🧪 TESTING REQUIREMENTS
-- **Unit Tests**: All core functions and utilities (coverage targets set per project)
-- **Component Tests**: UI component tests (if applicable)
-- **Integration Tests**: API routes and database operations (if applicable)
-- **Manual Testing**: Any environment-specific manual checks (e.g., mobile webview)
+### 🧪 TESTING REQUIREMENTS (Rust project)
+- **Unit Tests**: All core functions and utilities using `cargo test`
+- **Integration Tests**: API integration tests under `tests/` (Axum handlers, db interactions)
+- **Database Migrations**: SQLx migrations must run successfully in CI (`sqlx migrate` or `cargo sqlx prepare` when used)
+- **Formatting/Linting**: `cargo fmt -- --check`, `cargo clippy -- -D warnings`
 
-### ✅ ACCEPTANCE CRITERIA (100% MANDATORY)
-- [ ] Build command passes successfully with zero errors/warnings (`[build command]`)
-- [ ] Lint command passes with zero violations (`[lint command]`)
-- [ ] Language/typecheck passes (e.g., TypeScript/other) (`[typecheck command]`)
-- [ ] All tests pass (`[test command]`) with zero failures
+### ✅ ACCEPTANCE CRITERIA (100% MANDATORY) — Rust
+- [ ] `cargo build --release` passes with zero errors
+- [ ] `cargo clippy -- -D warnings` passes with zero warnings/errors
+- [ ] `cargo fmt -- --check` passes (code formatted)
+- [ ] `cargo check` passes (type checks)
+- [ ] `cargo test` passes with zero failures
 - [ ] Single deliverable works end-to-end
 - [ ] No unintended side effects
 - [ ] Code follows project patterns and style guidelines
+
+### ✅ REPLACEMENT VS NEW-PAGE CHECKS (MANDATORY WHEN REPLACING MOCKS)
+- If the task replaces a mock/tab content, the issue MUST include a **Files to Modify** section (exact paths). The implementer must not create a separate page or route unless the task explicitly lists that new file under **Files to Create**.
+- Acceptance checks for replacement tasks:
+  - [ ] No new route or dedicated page added for the replaced tab (verify diff for new route files)
+  - [ ] The mock component/file at the listed path is removed or replaced in-place
+  - [ ] Existing navigation/tabs still point to the same route/component (no new route required)
+  - [ ] Tests updated to reflect replaced mock (or removed mocks)
+  - [ ] A short note in PR description: "Replaced mock at `path/to/file` — no new page created"
 
 ### 🔄 GIT WORKFLOW (MANDATORY)
 - **Branch Name**: `feature/task-[XXX]-[X]-[description]`
@@ -123,13 +138,12 @@ ALTER POLICY ...;
   Co-Authored-By: Claude <noreply@anthropic.com>
   ```
 
-### 🚨 VALIDATION CHECKLIST (MANDATORY BEFORE COMMIT)
-- [ ] `npm run build` → Must show "✓ Compiled successfully"
-- [ ] `npm run lint` → Must show "✓ Lint complete"
-- [ ] `npm test` → Must show "✓ All tests passed"
-- [ ] Manual test in LINE WebView (if applicable)
-- [ ] No console errors in browser
-- [ ] TypeScript compilation successful
+### 🚨 VALIDATION CHECKLIST (MANDATORY BEFORE COMMIT) — Rust
+- [ ] `cargo build --release` → Must succeed
+- [ ] `cargo clippy -- -D warnings` → No warnings/errors
+- [ ] `cargo test` → All tests passed
+- [ ] `cargo fmt -- --check` → No formatting diffs
+- [ ] `cargo check` → Type checks pass
 
 ### 📖 IMPLEMENTATION INSTRUCTIONS
 **Follow exactly these steps:**
@@ -142,12 +156,24 @@ ALTER POLICY ...;
   ```
 
 2. **Implementation**: Build the single deliverable exactly as specified
+  - If replacing a mock: open the file(s) listed in **FILES TO MODIFY** and replace the mock implementation there. Do not scaffold a new page or route. If the implementer finds that a new file is truly required, include an explanation in the PR and get an approver to confirm.
 
 3. **Validation** (MANDATORY BEFORE COMMIT):
   ```bash
-  [build command]    # Must pass
-  [lint command]     # Must pass
-  [test command]     # Must pass
+  # Build
+  cargo build --release
+
+  # Lint (treat warnings as errors)
+  cargo clippy -- -D warnings
+
+  # Tests
+  cargo test
+
+  # Formatting check
+  cargo fmt -- --check
+
+  # Type check
+  cargo check
   ```
 
 4. **Commit Changes**:
@@ -218,7 +244,7 @@ ALTER POLICY ...;
 
 ## 🚀 Atomic Task Examples
 
-### Example 1: Database Table Creation
+### Example 1: Database Table Creation (Rust)
 ```markdown
 ## [TASK-009-1] Atomic: Create Members Database Table
 
@@ -239,11 +265,11 @@ ALTER POLICY ...;
 ### 🤖 COPILOT IMPLEMENTATION INSTRUCTIONS
 **GitHub Copilot must:**
 1. Create feature branch from staging: `feature/task-009-1-members-database-table`
-2. Create SQL schema file with exact table structure
-3. Implement Row Level Security policies
-4. Create TypeScript type definitions
-5. Validate: `npm run build`, `npm run lint`, `npm test` (100% PASS)
-6. Create pull request with proper documentation
+2. Create SQL migration file under `migrations/` with exact table structure
+3. Implement Row Level Security policies in SQL where applicable
+4. Create Rust data models (structs/enums) and SQLx types for the new table
+5. Validate with cargo commands: `cargo build --release`, `cargo clippy -- -D warnings`, `cargo test` (100% PASS)
+6. Create pull request with proper documentation and migration notes
 
 ### 🏗️ TECHNICAL REQUIREMENTS
 - **Framework**: [FRAMEWORK] (project-specific)
@@ -296,19 +322,19 @@ CREATE POLICY "Users can update own profile"
 ```
 
 ### 🔧 EXACT IMPLEMENTATION REQUIREMENTS
-- **No modifications to existing files**
-- **Complete TypeScript interfaces** for Member type
+- **No modifications to existing files** (unless specified in FILES TO MODIFY)
+- **Complete Rust types** (structs/enums) for the Member model and SQLx query types
 - **Comprehensive error handling** in database operations
-- **Row Level Security** properly configured
+- **Row Level Security** properly configured in SQL migrations
 - **Timestamps** for created_at and updated_at
 
-### ✅ ACCEPTANCE CRITERIA (100% MANDATORY)
-- [ ] `npm run build` passes with **ZERO** errors or warnings
-- [ ] `npm run lint` passes with **ZERO** violations
-- [ ] `npx tsc --noEmit` passes (TypeScript compilation)
-- [ ] All tests pass (`npm test`) with **ZERO** failures
-- [ ] SQL script executes successfully in Supabase
-- [ ] TypeScript types compile without errors
+### ✅ ACCEPTANCE CRITERIA (100% MANDATORY) — Rust
+- [ ] `cargo build --release` passes with **ZERO** errors or warnings
+- [ ] `cargo clippy -- -D warnings` passes with **ZERO** warnings
+- [ ] `cargo fmt -- --check` passes (formatting)
+- [ ] All tests pass (`cargo test`) with **ZERO** failures
+- [ ] SQL migration executes successfully (locally or in CI preview)
+- [ ] Rust types compile without errors
 - [ ] No unintended side effects
 
 ### 🔗 RELATED CONTEXT (NO DEPENDENCIES)
@@ -319,9 +345,9 @@ CREATE POLICY "Users can update own profile"
 **Labels**: [no labels - clean issue creation]
 ```
 
-### Example 2: React Component Creation (Manual Mode)
+### Example 2: Axum Handler Creation (Manual Mode)
 ```markdown
-## [TASK-009-2] Atomic: Create LoadingSpinner Component
+## [TASK-009-2] Atomic: Create Tarot Reading API Handler
 
 ### 🤖 EXECUTION MODE: MANUAL (MANDATORY)
 **Current Mode: MANUAL**
@@ -329,57 +355,46 @@ CREATE POLICY "Users can update own profile"
 
 ### 🎯 SINGLE OBJECTIVE (MANDATORY)
 **Complete this one specific deliverable end-to-end:**
-- Create a reusable LoadingSpinner component with shadcn/ui patterns
+- Implement an Axum POST handler at `/api/v1/tarot/read` that accepts a JSON `TarotRequest` and returns `TarotResponse`.
 
 ### 📦 DELIVERABLE (MANDATORY)
 **This task creates ONE complete deliverable:**
-- **File(s) Created**: `components/ui/loading-spinner.tsx`, `components/ui/loading-spinner.test.tsx`
-- **Functionality Added**: Loading spinner with accessibility features
-- **Integration Points**: Can be imported and used throughout the application
+- **File(s) Created**: `src/handlers/tarot.rs`, `tests/tarot_integration_tests.rs`
+- **Functionality Added**: Axum handler, request validation, invocation of existing pipeline function, and proper error mapping
+- **Integration Points**: Connects to `TarotReadingPipeline::process_reading` and `AppState` for DB and LLM clients
 
 ### 👨‍💻 MANUAL IMPLEMENTATION INSTRUCTIONS
 **Human developer must:**
-1. Create feature branch from staging: `feature/task-009-2-loading-spinner-component`
-2. Implement React component following shadcn/ui patterns
-3. Add comprehensive TypeScript interfaces
-4. Include accessibility features (ARIA, reduced motion)
-5. Write unit tests using Testing Library
-6. Validate: `npm run build`, `npm run lint`, `npm test` (100% PASS)
-7. Commit with proper message format and create pull request
+1. Create feature branch from staging: `feature/task-009-2-tarot-handler`
+2. Implement Axum handler with Serde request/response models
+3. Wire handler into router in `main.rs` or router module (update only if specified in FILES TO MODIFY)
+4. Add integration tests under `tests/` using `axum::Server::bind` test harness or `tower::Service` test utilities
+5. Validate: `cargo build --release`, `cargo clippy -- -D warnings`, `cargo test` (100% PASS)
+6. Commit with proper message format and create pull request
 
 ### 🏗️ TECHNICAL REQUIREMENTS
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript (strict mode enabled)
-- **UI Library**: shadcn/ui + Tailwind CSS
-- **Testing**: Jest + Testing Library
+- **Framework**: Axum
+- **Language**: Rust (edition 2021/2024)
+- **Testing**: `cargo test` + integration tests in `tests/`
 
 ### 📁 FILES TO CREATE (EXACT LIST)
 ```
-components/ui/loading-spinner.tsx
-components/ui/loading-spinner.test.tsx
+src/handlers/tarot.rs
+tests/tarot_integration_tests.rs
 ```
 
 ### 🔧 EXACT IMPLEMENTATION REQUIREMENTS
-- **No modifications to existing files**
-- **Complete TypeScript interfaces** for props
-- **Accessibility compliance** (ARIA labels, reduced motion)
-- **Mobile-friendly sizing** for LINE WebView
-- **shadcn/ui design patterns** consistency
-
-### 🎨 UI/UX REQUIREMENTS
-- **Design System**: Follow existing shadcn/ui patterns exactly
-- **Mobile Optimization**: LINE WebView (320px minimum width)
-- **Large Touch Targets**: 44px minimum for elderly users
-- **High Contrast**: 4.5:1 minimum color contrast ratio
-- **Reduced Motion**: Respect prefers-reduced-motion
+- **No modifications to existing files** unless the task explicitly lists `FILES TO MODIFY`
+- **Complete Rust types** for request/response (Serde) and mapping to internal models
+- **Comprehensive error handling** with appropriate HTTP status codes
+- **Add tests** to cover success and failure cases
+- **Documentation**: brief README entry or comment indicating handler responsibilities
 
 ### ✅ ACCEPTANCE CRITERIA (100% MANDATORY)
-- [ ] `npm run build` passes with **ZERO** errors or warnings
-- [ ] `npm run lint` passes with **ZERO** violations
-- [ ] `npx tsc --noEmit` passes (TypeScript compilation)
-- [ ] All tests pass (`npm test`) with **ZERO** failures
-- [ ] Component renders correctly
-- [ ] Accessibility tests pass
+- [ ] `cargo build --release` passes with **ZERO** errors or warnings
+- [ ] `cargo clippy -- -D warnings` passes with **ZERO** warnings
+- [ ] `cargo test` passes with **ZERO** failures (unit + integration)
+- [ ] Handler correctly invokes pipeline and returns expected JSON shape
 - [ ] No unintended side effects
 
 ### 🔗 RELATED CONTEXT (NO DEPENDENCIES)

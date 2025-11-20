@@ -15,7 +15,7 @@
 
 - ❌ **NEVER merge PRs yourself** - Provide PR link and wait for user instructions
 - ❌ **NEVER work on main/staging branches** - Always use feature branches
-- ❌ **NEVER delete critical files** (.env, .git/, node_modules/, package.json, lib/database/)
+- ❌ **NEVER delete critical files** (.env, .git/, `Cargo.toml`, `Cargo.lock`, `src/`)
 - ❌ **NEVER commit sensitive data** (API keys, passwords, secrets) - Use environment variables
 - ❌ **NEVER skip 100% validation** (build, lint, test) - Must pass completely
 - ❌ **NEVER use git push --force** - Only use --force-with-lease when absolutely necessary
@@ -26,8 +26,8 @@
 - ✅ **ALWAYS** sync main branch before any implementation: `git checkout main && git pull origin main`
 - ✅ **ALWAYS** verify task issue exists: `#[issue-number]` before `=impl`
 - ✅ **ALWAYS** use feature branch naming: `feature/task-[issue-number]-[description]`
-- ✅ **ALWAYS** ensure 100% build success before commit: `npm run build`
-- ✅ **ALWAYS** ensure 100% lint pass before commit: `npm run lint`
+-- ✅ **ALWAYS** ensure 100% build success before commit: `cargo build --release`
+-- ✅ **ALWAYS** ensure 100% lint pass before commit: `cargo clippy -- -D warnings`
 - ✅ **ALWAYS** use template-guided workflow with proper context validation
 - ✅ **ALWAYS** verify code formatting: Prettier auto-formatting (consistent formatting)
 
@@ -211,7 +211,7 @@ All workflow commands are now available as proper Claude Code slash commands (ma
 - `debug` - Error solutions, troubleshooting, workarounds
 - `workflow` - Process improvements, automation
 - `frontend` - React, Electron, UI components
-- `backend` - Node.js, APIs, services
+-- `backend` - Rust, APIs, services
 
 ### Knowledge ID System
 
@@ -449,13 +449,13 @@ cargo check            # Type checking without building
 
 ### Code Quality Requirements
 
-- **TypeScript**: Strict typing with comprehensive type coverage
-- **ESLint**: Zero warnings (enforced via Next.js configuration)
-- **Prettier**: Consistent code formatting across project
-- **Build**: 100% success rate before commit
-- **Tests**: Unit tests for critical paths (auth, data validation)
-- **Type Safety**: Full TypeScript coverage with proper interfaces
-- **Error Handling**: Comprehensive error boundaries and validation
+- **Rust**: Use idiomatic Rust with strong type coverage
+- **Clippy**: Zero warnings (enforced in CI with `cargo clippy -- -D warnings`)
+- **Rustfmt**: Consistent code formatting (`cargo fmt` / `cargo fmt -- --check`)
+- **Build**: 100% success rate before commit (`cargo build --release`)
+- **Tests**: Unit and integration tests for critical paths
+- **Type Safety**: Ensure `cargo check` passes
+- **Error Handling**: Comprehensive error handling and domain-specific errors
 
 ### API Quality Standards
 
@@ -477,10 +477,11 @@ cargo check            # Type checking without building
 - **Bundle Size**: < 1MB initial JavaScript load
 - **Image Optimization**: WebP format with lazy loading
 
+
 ### Security Standards
 
 - **Secrets Management**: Use .env.local, never commit sensitive data
-- **Database Access**: All queries use Prisma ORM with parameterization
+-- **Database Access**: Use parameterized queries via `sqlx`/`Diesel` or equivalent
 - **Authentication**: better-auth with LINE OAuth + session management
 - **CORS**: Configured for frontend domain only
 - **Rate Limiting**: Per-user limits on sensitive endpoints

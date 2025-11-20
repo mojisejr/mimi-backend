@@ -28,7 +28,7 @@ When creating a task issue:
 ### Phase 1: Hallucination Prevention Analysis
 1. **Codebase Analysis**:
    - Scan existing components and patterns
-   - Check `package.json` for installed dependencies
+   - Check `Cargo.toml` for declared dependencies
    - Verify available technologies and tools
    - Review current architecture and file structure
 
@@ -45,7 +45,7 @@ When creating a task issue:
 
 4. **Hallucination Prevention Checklist**:
    - ✅ Codebase components analyzed?
-   - ✅ Dependencies verified in package.json?
+   - ✅ Dependencies verified in `Cargo.toml`?
    - ✅ Previous issue context checked?
    - ✅ Technology stack validated?
    - ✅ Implementation patterns reviewed?
@@ -102,15 +102,15 @@ Uses `docs/TASK-ISSUE-TEMP.md` template which includes:
 
 ## Implementation Requirements
 
-All tasks require 100% validation:
-- **Build validation**: `npm run build` (Next.js project)
-- **Lint validation**: `npm run lint`
-- **Format validation**: Auto-formatting (prettier)
-- **Type check validation**: `npx tsc --noEmit`
-- **Test validation**: `npm run test` (if available)
+All tasks require 100% validation (Rust/Cargo project):
+- **Build validation**: `cargo build --release`
+- **Lint validation**: `cargo clippy -- -D warnings`
+- **Format validation**: `cargo fmt -- --check`
+- **Type check validation**: `cargo check`
+- **Test validation**: `cargo test` (if available)
 
 ### Enhanced Validation Context
-- **Dependencies verified**: Based on actual `package.json` analysis
+- **Dependencies verified**: Based on actual `Cargo.toml` analysis
 - **Components confirmed**: Referenced components exist in codebase
 - **Patterns validated**: Follow established codebase patterns
 - **Scope realistic**: MVP-appropriate implementation requirements

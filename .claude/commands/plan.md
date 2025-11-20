@@ -40,7 +40,7 @@ When creating a task issue:
 ### Phase 1: Actual Hallucination Prevention Analysis (IMPLEMENTED)
 1. **Codebase Analysis** (ACTUALLY EXECUTED):
    - Load `.claude/utils/codebase-analyzer.js`
-   - Execute `analyzeDependencies()` to check `package.json`
+   - Execute `analyzeDependencies()` to check `Cargo.toml`
    - Run `analyzeComponents()` to scan existing UI components
    - Execute `generateCodebaseSummary()` for current state
    - Store results for validation step
@@ -64,7 +64,7 @@ When creating a task issue:
 
 5. **Automated Hallucination Prevention Checklist** (ACTUALLY VERIFIED):
    - ✅ Codebase components analyzed? (`CodebaseAnalyzer.analyzeComponents()`)
-   - ✅ Dependencies verified in package.json? (`CodebaseAnalyzer.analyzeDependencies()`)
+   - ✅ Dependencies verified in `Cargo.toml`? (`CodebaseAnalyzer.analyzeDependencies()`)
    - ✅ Previous issue context checked? (`gh issue list` + analysis)
    - ✅ Technology stack validated? (Codebase summary)
    - ✅ Implementation patterns reviewed? (Pattern detection)
@@ -98,7 +98,7 @@ When creating a task issue:
      ## Reality Check
      **Dependencies Verified:**
      - ✅ Available: next, react, typescript
-     - ❌ Missing: zod, react-hook-form (Install: npm install zod react-hook-form)
+   - ❌ Missing: zod, react-hook-form (Install: use `cargo add` for Rust crates or add appropriate crates)
 
      **Components Confirmed:**
      - ✅ Available: Button, Card, Input, Alert
@@ -146,14 +146,14 @@ Uses `docs/TASK-ISSUE-TEMP.md` template which includes:
 ## Implementation Requirements
 
 All tasks require 100% validation:
-- **Build validation**: `npm run build` (Next.js project)
-- **Lint validation**: `npm run lint`
-- **Format validation**: Auto-formatting (prettier)
-- **Type check validation**: `npx tsc --noEmit`
-- **Test validation**: `npm run test` (if available)
+- **Build validation**: `cargo build --release`
+- **Lint validation**: `cargo clippy -- -D warnings`
+- **Format validation**: `cargo fmt -- --check`
+- **Type check validation**: `cargo check`
+- **Test validation**: `cargo test` (if available)
 
 ### Enhanced Validation Context
-- **Dependencies verified**: Based on actual `package.json` analysis
+   - **Dependencies verified**: Based on actual `Cargo.toml` analysis
 - **Components confirmed**: Referenced components exist in codebase
 - **Patterns validated**: Follow established codebase patterns
 - **Scope realistic**: MVP-appropriate implementation requirements
@@ -233,7 +233,7 @@ if (validation.missingRequirements.length > 0) {
 ### Implemented Hallucination Prevention Features:
 - ✅ **Real codebase analysis**: Uses CodebaseAnalyzer for actual dependency and component scanning
 - ✅ **Automated validation**: validateProposedFeature() checks task feasibility
-- ✅ **Installation guidance**: Provides exact npm commands for missing packages
+- ✅ **Installation guidance**: Provides exact crate-add guidance (e.g., `cargo add`) or equivalent for missing dependencies
 - ✅ **Fallback alternatives**: Suggests workarounds for missing components
 - ✅ **Reality-based requirements**: Task content based on actual project state
 - ✅ **Pattern compliance**: Tasks follow existing codebase architecture

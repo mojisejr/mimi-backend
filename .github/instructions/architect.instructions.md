@@ -91,14 +91,14 @@ Testing: Jest + @testing-library/react
 
 #### Backend Stack
 ```
-Runtime: Node.js (via Next.js)
-API: Next.js API Routes
-Authentication: better-auth
-Database: PostgreSQL 15+ (Supabase)
-ORM: Prisma
-Validation: zod
-File Storage: Supabase Storage
-Real-time: Supabase Real-time (future)
+Runtime: Rust (Axum or Actix-web)
+API: Rust HTTP framework endpoints (Axum/Actix)
+Authentication: environment-based session/auth libraries or OAuth integrations
+Database: PostgreSQL 15+
+ORM/DB: sqlx or Diesel (async SQL / query builder)
+Validation: serde + validator or custom zod-like validation in Rust
+File Storage: Supabase Storage or S3-compatible storage
+Real-time: Postgres listen/notify or WebSocket (depending on service)
 ```
 
 #### Infrastructure Stack
@@ -688,22 +688,22 @@ export function useCreateAnimal() {
 
 #### 1. Vercel Deployment
 
-**Build Configuration**
-```json
-// package.json scripts
-{
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "type-check": "tsc --noEmit",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:migrate": "prisma migrate deploy",
-    "db:studio": "prisma studio"
-  }
-}
+**Build / Run Configuration (Rust)**
+```toml
+# Cargo-based workflow (examples)
+#[Cargo.toml scripts are not native; use the following common commands:]
+# Build release
+cargo build --release
+# Run dev server
+cargo run
+# Lint (clippy)
+cargo clippy -- -D warnings
+# Format check
+cargo fmt -- --check
+# Run tests
+cargo test
+# Database migrations (tool-dependent, e.g., sqlx-cli or refinery)
+# Example: `cargo run --bin migrate` or `sqlx migrate run`
 ```
 
 **Environment Variables**
@@ -865,10 +865,10 @@ db.animal.findMany = function(...args) {
 
 #### 1. Local Development
 
-**Development Environment Setup**
+**Development Environment Setup (Rust)**
 ```bash
-# Install dependencies
-npm install
+# Fetch/build dependencies
+cargo fetch
 
 # Set up environment
 cp .env.example .env.local
@@ -876,11 +876,12 @@ cp .env.example .env.local
 # Start database
 docker-compose up -d postgres
 
-# Run migrations
-npm run db:migrate
+# Run migrations (tool-dependent, e.g., sqlx-cli or a migration binary)
+# Example using a migration binary built into the repo:
+cargo run --bin migrate
 
 # Start development server
-npm run dev
+cargo run
 ```
 
 **Testing Strategy**
@@ -937,25 +938,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
         with:
-          node-version: '18'
-          cache: 'npm'
+          toolchain: stable
+          profile: minimal
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Build (release)
+        run: cargo build --release
 
       - name: Run tests
-        run: npm test
+        run: cargo test --all
 
-      - name: Type check
-        run: npm run type-check
+      - name: Lint (clippy)
+        run: cargo clippy --all-targets -- -D warnings
 
-      - name: Lint
-        run: npm run lint
-
-      - name: Build
-        run: npm run build
+      - name: Format check
+        run: cargo fmt -- --check
 
   deploy:
     needs: test

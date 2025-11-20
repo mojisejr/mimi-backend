@@ -33,11 +33,11 @@ A specialized GitHub agent that creates structured Pull Requests from feature br
    - Extract implementation requirements
 
 3. **Validation Requirements (100% Mandatory)**:
-   - Build validation: `npm run build` (Next.js project)
-   - Lint validation: `npm run lint`
-   - Format validation: Auto-formatting (prettier)
-   - Type check validation: `npx tsc --noEmit`
-   - Test validation: `npm run test` (if applicable)
+   - Build validation: `cargo build --release`
+   - Lint validation: `cargo clippy -- -D warnings`
+   - Format validation: `cargo fmt -- --check`
+   - Type check validation: `cargo check`
+   - Test validation: `cargo test` (if applicable)
 
 ### PR Creation Process
 1. **Title Generation**: `feat: {clean task title} (resolve #{issue-number})`
@@ -68,10 +68,10 @@ Examples:
 ### Validation Process
 All validations must pass with 100% success rate before PR creation:
 ```bash
-npm run build              # Build validation
-npm run lint               # Lint validation
-npx tsc --noEmit         # Type check validation
-npm test                  # Test validation (if available)
+cargo build --release     # Build validation
+cargo clippy -- -D warnings # Lint validation
+cargo check               # Type check validation
+cargo test                # Test validation (if available)
 ```
 
 ### PR Title Format
@@ -105,10 +105,10 @@ This PR implements: **{task description}**
 
 ## Validation
 
-- ✅ Build validation: 100% PASS (`npm run build`)
-- ✅ Lint validation: 100% PASS (`npm run lint`)
-- ✅ Format validation: 100% PASS (prettier)
-- ✅ Type check validation: 100% PASS (`npx tsc --noEmit`)
+- ✅ Build validation: 100% PASS (`cargo build --release`)
+- ✅ Lint validation: 100% PASS (`cargo clippy -- -D warnings`)
+- ✅ Format validation: 100% PASS (`cargo fmt -- --check`)
+- ✅ Type check validation: 100% PASS (`cargo check`)
 
 ## Test Plan
 
