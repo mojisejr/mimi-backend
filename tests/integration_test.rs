@@ -10,13 +10,13 @@ mod tests {
     fn test_question_filter_validates_empty_question() {
         let result = question_filter::filter_question("");
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), false);
+        assert!(!result.unwrap());
     }
 
     #[test]
     fn test_question_filter_accepts_valid_question() {
         let result = question_filter::filter_question("ความรักของฉันจะเป็นอย่างไร");
         assert!(result.is_ok());
-        assert_eq!(result.unwrap(), true);
+        assert!(result.unwrap());
     }
 }
