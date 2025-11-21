@@ -6,6 +6,7 @@
 pub mod redis_dedupe;
 pub mod redis_queue;
 pub mod types;
+pub mod upstash_queue;
 
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
