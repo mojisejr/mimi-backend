@@ -230,7 +230,7 @@ async fn test_upstash_queue_length() {
     std::env::remove_var("UPSTASH_REDIS_TOKEN");
     std::env::remove_var("UPSTASH_REDIS_STREAM_KEY");
     std::env::remove_var("UPSTASH_REDIS_CONSUMER_GROUP");
-    
+
     // Re-read from actual environment
     if std::env::var("UPSTASH_REDIS_URL").is_err() {
         println!("Skipping test: UPSTASH_REDIS_URL not set");
