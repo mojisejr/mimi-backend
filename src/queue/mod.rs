@@ -3,6 +3,7 @@
 //! Provides a standardized interface for job queues that can be backed by
 //! different implementations (Redis, Upstash, In-Memory).
 
+pub mod redis_dedupe;
 pub mod types;
 
 use async_trait::async_trait;
