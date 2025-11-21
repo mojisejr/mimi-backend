@@ -4,6 +4,7 @@
 //! different implementations (Redis, Upstash, In-Memory).
 
 pub mod redis_dedupe;
+pub mod redis_queue;
 pub mod types;
 
 use async_trait::async_trait;

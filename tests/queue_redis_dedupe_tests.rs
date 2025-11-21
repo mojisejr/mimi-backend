@@ -203,10 +203,8 @@ mod redis_dedupe_tests {
         // Collect results
         let mut results = vec![];
         for handle in handles {
-            if let Ok(result) = handle.await {
-                if let Ok(success) = result {
-                    results.push(success);
-                }
+            if let Ok(Ok(success)) = handle.await {
+                results.push(success);
             }
         }
 
