@@ -45,7 +45,7 @@ This directory contains GitHub agents that implement the Jaothui ID-Trace workfl
 - **Duplicate Prevention**: Mandatory `/khub` check before creating entries
 - **Automatic ID Generation**: KNOW-[CATEGORY]-XXX format with sequential numbering
 - **Category Organization**: Structured knowledge domains with automatic labeling
-- **Hub Integration**: Central Knowledge Hub #102 for knowledge discovery
+- **Hub Integration**: Central Knowledge Hub #32 for knowledge discovery
 
 ## Validation Commands (Next.js Project)
 
@@ -146,7 +146,7 @@ git push -u origin [branch]  # Push to remote
 ### Required Files
 - **Templates**: `docs/` directory templates
 - **Configuration**: `.claude/` directory for mode and context
-- **Knowledge Base**: GitHub Issue #102 (Knowledge Hub)
+- **Knowledge Base**: GitHub Issue #32 (Knowledge Hub)
 
 ## Agent Maintenance
 
@@ -188,7 +188,52 @@ Agent will:
 /kupdate device "SHT30 sensor fix" # Create new entry
 ```
 Agent will:
-1. Read Knowledge Hub #102
+- **Knowledge Base**: GitHub Issue #32 (Knowledge Hub)
+
+## Agent Maintenance
+
+### Regular Updates
+- **Validation Commands**: Update when project tooling changes
+- **Templates**: Maintain consistent template structure
+- **Dependencies**: Update agent dependencies as project evolves
+
+### Quality Assurance
+- **Template Validation**: Ensure templates exist and are accessible
+- **Command Testing**: Validate agent commands work correctly
+- **Integration Testing**: Test agent workflow end-to-end
+
+## Agent Usage Examples
+
+### Plan Agent with Hallucination Prevention
+```bash
+/plan "Add user authentication with LINE OAuth"
+```
+Agent will:
+1. Analyze existing auth system
+2. Check LINE OAuth dependencies
+3. Verify authentication patterns
+4. Create realistic task requirements
+
+### Implementation Agent with Validation
+```bash
+/impl 123
+```
+Agent will:
+1. Sync with main branch
+2. Create feature branch
+3. Run all validation commands
+4. Provide implementation guidance
+
+### Knowledge Agent with Duplicate Prevention
+```bash
+/khub                              # Check existing entries
+/kupdate device "SHT30 sensor fix" # Create new entry
+```
+Agent will:
+1. Read Knowledge Hub #32
+2. Generate KNOW-DEVICE-003 ID
+3. Create knowledge issue
+4. Prompt for hub linking
 2. Generate KNOW-DEVICE-003 ID
 3. Create knowledge issue
 4. Prompt for hub linking

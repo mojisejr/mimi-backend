@@ -20,7 +20,7 @@ All 13 workflow commands from your `=` command system have been successfully con
 - **`/pr`** - Create Pull Requests
 
 ### Knowledge Management (7 commands)
-- **`/khub`** - Access Knowledge Hub #102
+- **`/khub`** - Access Knowledge Hub #32
 - **`/kupdate`** - Create knowledge entries
 - **`/klink`** - Link knowledge to hub
 - **`/ksync`** - Synchronize knowledge hub

@@ -89,7 +89,7 @@ After issue creation:
 
 1. **Prompt for Hub Linking**:
    ```
-   🔗 Link to Knowledge Hub #102? (y/n)
+   🔗 Link to Knowledge Hub #32? (y/n)
    Your choice:
    ```
 
@@ -139,7 +139,7 @@ Uses `docs/KNOWLEDGE-TEMP.md` which includes sections:
 
 **✅ RIGHT** (prevents duplicates):
 ```bash
-/khub                              # Read Knowledge Hub #102
+/khub                              # Read Knowledge Hub #32
 # See: KNOW-DEVICE-001, KNOW-DEVICE-002 exist
 /kupdate device "SHT30 sensor fix" # Creates KNOW-DEVICE-003 (correct!)
 ```
@@ -149,7 +149,7 @@ Uses `docs/KNOWLEDGE-TEMP.md` which includes sections:
 - `docs/KNOWLEDGE-TEMP.md` - Knowledge issue template
 - GitHub Issues - Individual knowledge entries
 - GitHub Labels - Category organization
-- Knowledge Hub #102 - Central index
+- Knowledge Hub #32 - Central index
 
 ## Notes
 

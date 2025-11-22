@@ -1,6 +1,6 @@
 # klink
 
-Knowledge Link - Link knowledge entry to Knowledge Hub #102 with automatic section placement and statistics updates.
+Knowledge Link - Link knowledge entry to Knowledge Hub #32 with automatic section placement and statistics updates.
 
 ## Usage
 
@@ -30,7 +30,7 @@ Knowledge Link - Link knowledge entry to Knowledge Hub #102 with automatic secti
    - Validate category is recognized
 
 3. **Validate Knowledge Hub**:
-   - Check Knowledge Hub #102 exists
+   - Check Knowledge Hub #32 exists
    - Extract current hub content and structure
 
 ### Category Detection
@@ -81,7 +81,7 @@ Extract category from issue labels:
    - Maintain markdown formatting
 
 4. **Apply Changes**:
-   - Update Knowledge Hub #102 with new content
+   - Update Knowledge Hub #32 with new content
    - Validate successful update
    - Handle conflicts gracefully
 
@@ -144,7 +144,7 @@ If hub contains "Total Knowledge Entries:" line:
 
 ## Files
 
-- GitHub Issue #102 - Knowledge Hub content
+- GitHub Issue #32 - Knowledge Hub content
 - Knowledge Issues - Individual entries being linked
 - Category Labels - Organization and classification
 

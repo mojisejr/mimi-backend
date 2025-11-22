@@ -95,9 +95,9 @@ All workflow commands are now available as proper Claude Code slash commands (ma
 /pr [feedback]                 # Create Pull Request from feature branch (to staging)
 
 # Knowledge Management
-/khub                          # 🔍 Read Knowledge Hub #102 (MANDATORY first step)
+/khub                          # 🔍 Read Knowledge Hub #32 (MANDATORY first step)
 /kupdate [category] "[topic]"  # Create Knowledge GitHub Issue (CHECK existing numbers!)
-/klink [knowledge-issue-number] # Link knowledge entry to Knowledge Hub #102
+/klink [knowledge-issue-number] # Link knowledge entry to Knowledge Hub #32
 /ksync                         # Synchronize Knowledge Hub with all entries
 /ksearch "[query]"             # Search across all knowledge entries
 /krecent                       # Show last 5 knowledge updates
@@ -110,7 +110,7 @@ All workflow commands are now available as proper Claude Code slash commands (ma
 =fcs > [topic-name]           # Create new Context GitHub Issue
 =plan > [task description]    # Create Task GitHub Issue
 =impl > [issue-number]        # Implementation workflow
-=khub                         # Read Knowledge Hub #102
+=khub                         # Read Knowledge Hub #32
 # ... (all other = commands still work)
 ```
 
@@ -193,10 +193,10 @@ All workflow commands are now available as proper Claude Code slash commands (ma
 
 **Enhanced Knowledge Workflow**:
 
-1. **🔍 Pre-Creation Check**: `=khub` → Read Knowledge Hub #102 FIRST to check existing KNOW-[CATEGORY]-XXX numbers
+1. **🔍 Pre-Creation Check**: `=khub` → Read Knowledge Hub #32 FIRST to check existing KNOW-[CATEGORY]-XXX numbers
 2. **Verify**: Check category section for existing numbers to avoid duplicates (e.g., KNOW-DEVICE-001, KNOW-DEVICE-002)
 3. **Create**: `=kupdate [category] "[topic]"` → Creates knowledge issue with next available number
-4. **Prompt**: System asks "Link to Knowledge Hub #102? (y/n)"
+4. **Prompt**: System asks "Link to Knowledge Hub #32? (y/n)"
 5. **Link**: If "y" → Automatically runs `=klink`
 6. **Sync**: Use `=ksync` to ensure hub is fully synchronized
 7. **Discover**: All knowledge accessible through `=khub` navigation
@@ -225,7 +225,7 @@ All workflow commands are now available as proper Claude Code slash commands (ma
 
 **MANDATORY Pre-Creation Checklist**:
 
-1. **ALWAYS run `=khub` first** - Read Knowledge Hub #102 completely
+1. **ALWAYS run `=khub` first** - Read Knowledge Hub #32 completely
 2. **Check existing numbers** in your category section (e.g., "Device Knowledge")
 3. **Identify next available number** (if 001, 002 exist, use 003)
 4. **Never assume** - always verify existing entries before creating
@@ -233,7 +233,7 @@ All workflow commands are now available as proper Claude Code slash commands (ma
 **Common Mistakes to Avoid**:
 
 - ❌ Creating KNOW-DEVICE-001 when it already exists
-- ❌ Not checking Knowledge Hub #102 before creating entries
+- ❌ Not checking Knowledge Hub #32 before creating entries
 - ❌ Assuming numbers without verification
 - ❌ Creating duplicate knowledge IDs
 
@@ -244,7 +244,7 @@ All workflow commands are now available as proper Claude Code slash commands (ma
 = kupdate device "SHT30 sensor fix"  # Creates KNOW-DEVICE-001 (duplicate!)
 
 # ✅ RIGHT (prevents duplicates)
-= khub                              # Read Knowledge Hub #102
+= khub                              # Read Knowledge Hub #32
 # See: KNOW-DEVICE-001, KNOW-DEVICE-002 exist
 = kupdate device "SHT30 sensor fix" # Creates KNOW-DEVICE-003 (correct!)
 ```
@@ -291,7 +291,7 @@ All workflow commands are now available as proper Claude Code slash commands (ma
 **Enhanced `=kupdate` Workflow**:
 
 1. Creates knowledge GitHub issue ✅
-2. **Automatically prompts**: "Link to Knowledge Hub #102? (y/n)"
+2. **Automatically prompts**: "Link to Knowledge Hub #32? (y/n)"
 3. If "y": Runs `=klink` automatically ✨
 4. Maintains consistency across knowledge system
 

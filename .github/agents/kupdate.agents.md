@@ -13,7 +13,7 @@ A specialized GitHub agent that creates structured knowledge GitHub Issues with 
 - **Automatic ID Generation**: Generates unique KNOW-[CATEGORY]-XXX identifiers
 - **Duplicate Prevention**: Enforces mandatory `/khub` check to prevent duplicates
 - **Category Management**: Manages knowledge categories with automatic label creation
-- **Hub Integration**: Auto-links entries to Knowledge Hub #102 with user confirmation
+- **Hub Integration**: Auto-links entries to Knowledge Hub #32 with user confirmation
 - **Structured Learning**: Creates comprehensive knowledge entries with AI feedback
 
 ## Knowledge Categories
@@ -69,7 +69,7 @@ A specialized GitHub agent that creates structured knowledge GitHub Issues with 
 ### Auto-Linking Workflow
 1. **Hub Linking Prompt**:
    ```
-   🔗 Link to Knowledge Hub #102? (y/n)
+   🔗 Link to Knowledge Hub #32? (y/n)
    Your choice:
    ```
 
@@ -102,14 +102,14 @@ Uses `docs/KNOWLEDGE-TEMP.md` which includes sections:
 ## Duplicate Prevention System
 
 ### Critical Pre-Creation Checklist
-1. **ALWAYS run `/khub` first** - Read Knowledge Hub #102 completely
+1. **ALWAYS run `/khub` first** - Read Knowledge Hub #32 completely
 2. **Check existing numbers** in your category section
 3. **Identify next available number** (if 001, 002 exist, use 003)
 4. **Never assume** - always verify existing entries before creating
 
 ### Common Mistakes to Avoid
 - ❌ Creating KNOW-DEVICE-001 when it already exists
-- ❌ Not checking Knowledge Hub #102 before creating entries
+- ❌ Not checking Knowledge Hub #32 before creating entries
 - ❌ Assuming numbers without verification
 - ❌ Creating duplicate knowledge IDs
 
@@ -119,7 +119,7 @@ Uses `docs/KNOWLEDGE-TEMP.md` which includes sections:
 /kupdate device "SHT30 sensor fix"  # Creates KNOW-DEVICE-001 (duplicate!)
 
 # ✅ RIGHT (prevents duplicates)
-/khub                              # Read Knowledge Hub #102
+/khub                              # Read Knowledge Hub #32
 # See: KNOW-DEVICE-001, KNOW-DEVICE-002 exist
 /kupdate device "SHT30 sensor fix" # Creates KNOW-DEVICE-003 (correct!)
 ```
@@ -195,7 +195,7 @@ KNOW-[CATEGORY]-[NUMBER]
 - `docs/KNOWLEDGE-TEMP.md` - Knowledge issue template
 - GitHub Issues - Individual knowledge entries
 - GitHub Labels - Category organization
-- Knowledge Hub #102 - Central knowledge index
+- Knowledge Hub #32 - Central knowledge index
 
 ## Best Practices
 

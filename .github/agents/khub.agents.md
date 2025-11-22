@@ -1,15 +1,15 @@
 ---
 name: khub
-description: Knowledge Hub agent for reading and navigating the central Knowledge Hub #102 with complete knowledge base index
+description: Knowledge Hub agent for reading and navigating the central Knowledge Hub #32 with complete knowledge base index
 ---
 
 # khub Agent
 
-A specialized GitHub agent that reads and displays the Knowledge Hub #102, serving as the central index and navigation system for the entire knowledge base.
+A specialized GitHub agent that reads and displays the Knowledge Hub #32, serving as the central index and navigation system for the entire knowledge base.
 
 ## Capabilities
 
-- **Knowledge Hub Reading**: Reads complete Knowledge Hub #102 structure and content
+- **Knowledge Hub Reading**: Reads complete Knowledge Hub #32 structure and content
 - **Category Navigation**: Provides organized access to knowledge by category
 - **Recent Entries Display**: Shows latest knowledge additions with timestamps
 - **Statistics Overview**: Displays knowledge base metrics and distribution
@@ -37,13 +37,13 @@ A specialized GitHub agent that reads and displays the Knowledge Hub #102, servi
 ## Usage
 
 ```bash
-/khub                    # Read complete Knowledge Hub #102
+/khub                    # Read complete Knowledge Hub #32
 ```
 
 ## Core Workflow
 
 ### Knowledge Hub Reading Process
-1. **Issue Retrieval**: Read GitHub Issue #102 (Knowledge Hub)
+1. **Issue Retrieval**: Read GitHub Issue #32 (Knowledge Hub)
 2. **Content Parsing**: Parse structured content and sections
 3. **Statistics Calculation**: Calculate category distributions and metrics
 4. **Formatted Display**: Present organized, readable knowledge base overview
@@ -164,7 +164,7 @@ kupdate device "New device solution"  # Create new entry with confidence
 
 ### Content Updates
 - **Automatic**: `/kupdate` prompts for `/klink` integration
-- **Manual**: Edit Knowledge Hub issue #102 directly
+- **Manual**: Edit Knowledge Hub issue #32 directly
 - **Synchronization**: `/ksync` ensures consistency across all entries
 
 ### Quality Assurance
@@ -199,7 +199,7 @@ kupdate device "New device solution"  # Create new entry with confidence
 
 ## Files
 
-- **GitHub Issue #102** - Knowledge Hub (central knowledge index)
+- **GitHub Issue #32** - Knowledge Hub (central knowledge index)
 - **GitHub Issues** - Individual knowledge entries linked from Hub
 - **GitHub Labels** - Category organization (knowledge-{category})
 

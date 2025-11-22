@@ -1,6 +1,6 @@
 # ksync
 
-Knowledge Sync - Synchronize Knowledge Hub #102 with all knowledge entries for complete consistency.
+Knowledge Sync - Synchronize Knowledge Hub #32 with all knowledge entries for complete consistency.
 
 ## Usage
 
@@ -17,7 +17,7 @@ Knowledge Sync - Synchronize Knowledge Hub #102 with all knowledge entries for c
    - Verify jq is available for JSON parsing
 
 2. **Validate Knowledge Hub**:
-   - Check Knowledge Hub #102 exists
+   - Check Knowledge Hub #32 exists
    - Extract current hub content and structure
    - Validate accessibility
 
@@ -107,7 +107,7 @@ Knowledge Sync - Synchronize Knowledge Hub #102 with all knowledge entries for c
    - Include metadata and attribution
 
 2. **Hub Update**:
-   - Update Knowledge Hub #102 with rebuilt content
+   - Update Knowledge Hub #32 with rebuilt content
    - Validate successful update
    - Handle merge conflicts if needed
    - Confirm content integrity
@@ -124,7 +124,7 @@ Knowledge Sync - Synchronize Knowledge Hub #102 with all knowledge entries for c
 ```
 🔄 Starting Knowledge Hub synchronization...
 
-🔍 Validating Knowledge Hub #102...
+🔍 Validating Knowledge Hub #32...
 ✅ Knowledge Hub validated
 
 🔍 Discovering all knowledge entries...
@@ -169,7 +169,7 @@ Knowledge Sync - Synchronize Knowledge Hub #102 with all knowledge entries for c
 
 ## Error Handling
 
-- **Hub not found**: Clear error with Knowledge Hub #102
+- **Hub not found**: Clear error with Knowledge Hub #32
 - **Access denied**: Authentication or permission issues
 - **Update conflicts**: Manual resolution guidance
 - **Rate limiting**: Automatic retry with backoff
@@ -209,7 +209,7 @@ Knowledge Sync - Synchronize Knowledge Hub #102 with all knowledge entries for c
 
 ## Files
 
-- GitHub Issue #102 - Knowledge Hub content
+- GitHub Issue #32 - Knowledge Hub content
 - All Knowledge Issues - Source for synchronization
 - Category Labels - Organization and classification
 

@@ -1,6 +1,6 @@
 # khub
 
-Knowledge Hub - Access Knowledge Hub #102 to view all knowledge entries and prevent duplicate IDs.
+Knowledge Hub - Access Knowledge Hub #32 to view all knowledge entries and prevent duplicate IDs.
 
 ## Usage
 
@@ -17,7 +17,7 @@ Knowledge Hub - Access Knowledge Hub #102 to view all knowledge entries and prev
    - Verify jq is available for JSON parsing
 
 2. **Validate Knowledge Hub**:
-   - Check Knowledge Hub #102 exists
+   - Check Knowledge Hub #32 exists
    - Verify issue is accessible
    - Extract hub content and metadata
 
@@ -53,19 +53,19 @@ Knowledge Hub - Access Knowledge Hub #102 to view all knowledge entries and prev
    1. /khub - Read Knowledge Hub (MANDATORY first step)
    2. Check existing KNOW-[CATEGORY]-XXX numbers
    3. /kupdate [category] '[topic]' - Create knowledge entry
-   4. System prompts: 'Link to Knowledge Hub #102? (y/n)'
+   4. System prompts: 'Link to Knowledge Hub #32? (y/n)'
    5. If 'y': Automatic linking via /klink
    ```
 
 ### Browser Integration
 
-- Attempt to open Knowledge Hub #102 in default browser
+- Attempt to open Knowledge Hub #32 in default browser
 - Provide manual URL if browser opening fails
 - Support for macOS (`open`) and Linux (`xdg-open`)
 
 ## Error Handling
 
-- **Hub not found**: Clear error with Knowledge Hub #102
+- **Hub not found**: Clear error with Knowledge Hub #32
 - **Access denied**: Check GitHub CLI authentication
 - **Network issues**: Retry with exponential backoff
 - **Parsing errors**: Graceful degradation of display
@@ -96,12 +96,12 @@ Examples:
 
 ## Files
 
-- GitHub Issue #102 - Knowledge Hub content and structure
+- GitHub Issue #32 - Knowledge Hub content and structure
 - `.claude/` - Local state and tracking (if needed)
 
 ## Notes
 
-- Knowledge Hub #102 is the central index for all knowledge
+- Knowledge Hub #32 is the central index for all knowledge
 - Categories are auto-discovered from knowledge labels
 - Knowledge entries are GitHub Issues with structured content
 - Hub is automatically synchronized with `/ksync` command
