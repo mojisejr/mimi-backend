@@ -10,8 +10,8 @@
 //! - Display and Error trait implementations
 
 use mimivibe_backend::error::{
-    QueueError, WorkerError, ErrorSeverity, ErrorContext, ErrorExt,
-    classify_error, create_error_response
+    classify_error, create_error_response, ErrorContext, ErrorExt, ErrorSeverity, QueueError,
+    WorkerError,
 };
 use std::error::Error;
 use std::time::Duration;
@@ -102,7 +102,7 @@ fn test_error_response_creation() {
     assert_eq!(response.error_code, "QUEUE_DEQUEUE_FAILED");
     assert!(response.user_message.contains("Please try again"));
     assert_eq!(response.severity, "warning");
-    assert!(response.timestamp.len() > 0);
+    assert!(!response.timestamp.is_empty());
 }
 
 #[test]
@@ -116,7 +116,8 @@ fn test_error_classification_function() {
 
 #[test]
 fn test_error_chaining() {
-    let _root_cause = std::io::Error::new(std::io::ErrorKind::ConnectionRefused, "Network unreachable");
+    let _root_cause =
+        std::io::Error::new(std::io::ErrorKind::ConnectionRefused, "Network unreachable");
     let worker_error = WorkerError::JobProcessingFailed {
         job_id: "job-789".to_string(),
         attempts: 1,
@@ -129,7 +130,9 @@ fn test_error_chaining() {
 
     // Test that the error can be converted to Box<dyn Error>
     let boxed_error: Box<dyn Error> = Box::new(worker_error);
-    assert!(boxed_error.to_string().contains("WORKER_JOB_PROCESSING_FAILED"));
+    assert!(boxed_error
+        .to_string()
+        .contains("WORKER_JOB_PROCESSING_FAILED"));
 }
 
 // Integration tests for queue and worker error scenarios
@@ -174,10 +177,19 @@ fn test_all_error_variants_coverage() {
         QueueError::ConnectionFailed("DB connection lost".to_string()),
         QueueError::NetworkError("DNS resolution failed".to_string()),
         QueueError::TimeoutError("Operation timed out".to_string()),
-        QueueError::EnqueueFailed { payload_id: "test".to_string(), reason: "Full".to_string() },
+        QueueError::EnqueueFailed {
+            payload_id: "test".to_string(),
+            reason: "Full".to_string(),
+        },
         QueueError::DequeueFailed("Empty queue".to_string()),
-        QueueError::AckFailed { job_id: "job-1".to_string(), reason: "Job not found".to_string() },
-        QueueError::NackFailed { job_id: "job-2".to_string(), reason: "Invalid state".to_string() },
+        QueueError::AckFailed {
+            job_id: "job-1".to_string(),
+            reason: "Job not found".to_string(),
+        },
+        QueueError::NackFailed {
+            job_id: "job-2".to_string(),
+            reason: "Invalid state".to_string(),
+        },
         QueueError::QueueFull("Capacity exceeded".to_string()),
         QueueError::InvalidPayload("Bad format".to_string()),
         QueueError::InternalError("Panic occurred".to_string()),
@@ -195,11 +207,29 @@ fn test_all_error_variants_coverage() {
 
     // Worker errors
     let worker_errors = vec![
-        WorkerError::JobProcessingFailed { job_id: "job-1".to_string(), attempts: 1, reason: "Failed".to_string() },
-        WorkerError::JobTimeout { job_id: "job-2".to_string(), timeout: Duration::from_secs(30) },
-        WorkerError::RetryableError { job_id: "job-3".to_string(), attempts: 2, next_retry_in: Duration::from_secs(10), reason: "Temp fail".to_string() },
-        WorkerError::MaxRetriesExceeded { job_id: "job-4".to_string(), total_attempts: 5 },
-        WorkerError::InvalidJobData { job_id: "job-5".to_string(), validation_errors: vec!["Bad field".to_string()] },
+        WorkerError::JobProcessingFailed {
+            job_id: "job-1".to_string(),
+            attempts: 1,
+            reason: "Failed".to_string(),
+        },
+        WorkerError::JobTimeout {
+            job_id: "job-2".to_string(),
+            timeout: Duration::from_secs(30),
+        },
+        WorkerError::RetryableError {
+            job_id: "job-3".to_string(),
+            attempts: 2,
+            next_retry_in: Duration::from_secs(10),
+            reason: "Temp fail".to_string(),
+        },
+        WorkerError::MaxRetriesExceeded {
+            job_id: "job-4".to_string(),
+            total_attempts: 5,
+        },
+        WorkerError::InvalidJobData {
+            job_id: "job-5".to_string(),
+            validation_errors: vec!["Bad field".to_string()],
+        },
         WorkerError::InternalError("Worker panic".to_string()),
     ];
 
@@ -249,7 +279,7 @@ fn test_log_context_formatting() {
 
     // Verify log context contains expected fields
     assert!(log_context.contains("error_code=QUEUE_ENQUEUE_FAILED"));
-    assert!(log_context.contains("severity=warning"));  // severity is explicitly formatted
+    assert!(log_context.contains("severity=warning")); // severity is explicitly formatted
     assert!(log_context.contains("payload_id=\"payload-789\""));
     assert!(log_context.contains("reason=\"Queue at maximum capacity\""));
     assert!(log_context.contains("timestamp="));

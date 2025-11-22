@@ -85,15 +85,27 @@ pub enum QueueError {
 #[derive(Debug, Clone)]
 pub enum WorkerError {
     /// Job processing failed
-    JobProcessingFailed { job_id: String, attempts: u32, reason: String },
+    JobProcessingFailed {
+        job_id: String,
+        attempts: u32,
+        reason: String,
+    },
     /// Job processing timed out
     JobTimeout { job_id: String, timeout: Duration },
     /// Error that is retryable
-    RetryableError { job_id: String, attempts: u32, next_retry_in: Duration, reason: String },
+    RetryableError {
+        job_id: String,
+        attempts: u32,
+        next_retry_in: Duration,
+        reason: String,
+    },
     /// Maximum retry attempts exceeded
     MaxRetriesExceeded { job_id: String, total_attempts: u32 },
     /// Invalid job data
-    InvalidJobData { job_id: String, validation_errors: Vec<String> },
+    InvalidJobData {
+        job_id: String,
+        validation_errors: Vec<String>,
+    },
     /// Internal worker error
     InternalError(String),
 }
@@ -149,9 +161,7 @@ impl ErrorExt for QueueError {
             QueueError::ConnectionFailed(_) | QueueError::NetworkError(_) => {
                 "Service temporarily unavailable. Please try again in a few moments.".to_string()
             }
-            QueueError::TimeoutError(_) => {
-                "Request timed out. Please try again.".to_string()
-            }
+            QueueError::TimeoutError(_) => "Request timed out. Please try again.".to_string(),
             QueueError::EnqueueFailed { .. } | QueueError::QueueFull(_) => {
                 "Service is experiencing high demand. Please try again later.".to_string()
             }
@@ -159,7 +169,8 @@ impl ErrorExt for QueueError {
                 "Unable to process request at this time. Please try again.".to_string()
             }
             QueueError::AckFailed { .. } | QueueError::NackFailed { .. } => {
-                "Job processing encountered an issue. Please contact support if this persists.".to_string()
+                "Job processing encountered an issue. Please contact support if this persists."
+                    .to_string()
             }
             QueueError::InvalidPayload(_) => {
                 "Invalid request format. Please check your input and try again.".to_string()
@@ -175,8 +186,10 @@ impl ErrorExt for QueueError {
         let error_code = self.error_code();
         let severity = self.severity();
 
-        let mut context = format!("[{}] error_code={} severity={} timestamp={}",
-            error_code, error_code, severity, timestamp);
+        let mut context = format!(
+            "[{}] error_code={} severity={} timestamp={}",
+            error_code, error_code, severity, timestamp
+        );
 
         // Add specific context based on error type
         match self {
@@ -190,7 +203,10 @@ impl ErrorExt for QueueError {
                 context.push_str(&format!(" reason=\"{}\"", reason));
             }
             QueueError::EnqueueFailed { payload_id, reason } => {
-                context.push_str(&format!(" payload_id=\"{}\" reason=\"{}\"", payload_id, reason));
+                context.push_str(&format!(
+                    " payload_id=\"{}\" reason=\"{}\"",
+                    payload_id, reason
+                ));
             }
             QueueError::DequeueFailed(reason) => {
                 context.push_str(&format!(" reason=\"{}\"", reason));
@@ -217,11 +233,15 @@ impl ErrorExt for QueueError {
 
     fn severity(&self) -> ErrorSeverity {
         match self {
-            QueueError::ConnectionFailed(_) | QueueError::NetworkError(_) |
-            QueueError::InternalError(_) => ErrorSeverity::Error,
-            QueueError::TimeoutError(_) | QueueError::EnqueueFailed { .. } |
-            QueueError::DequeueFailed(_) | QueueError::AckFailed { .. } |
-            QueueError::NackFailed { .. } | QueueError::QueueFull(_) => ErrorSeverity::Warning,
+            QueueError::ConnectionFailed(_)
+            | QueueError::NetworkError(_)
+            | QueueError::InternalError(_) => ErrorSeverity::Error,
+            QueueError::TimeoutError(_)
+            | QueueError::EnqueueFailed { .. }
+            | QueueError::DequeueFailed(_)
+            | QueueError::AckFailed { .. }
+            | QueueError::NackFailed { .. }
+            | QueueError::QueueFull(_) => ErrorSeverity::Warning,
             QueueError::InvalidPayload(_) => ErrorSeverity::Warning,
         }
     }
@@ -252,10 +272,12 @@ impl ErrorExt for WorkerError {
                 "Request processing timed out. Please try again with a simpler query.".to_string()
             }
             WorkerError::RetryableError { .. } => {
-                "Your request is still being processed. Please check back in a few moments.".to_string()
+                "Your request is still being processed. Please check back in a few moments."
+                    .to_string()
             }
             WorkerError::MaxRetriesExceeded { .. } => {
-                "Request processing failed after multiple attempts. Please try again later.".to_string()
+                "Request processing failed after multiple attempts. Please try again later."
+                    .to_string()
             }
             WorkerError::InvalidJobData { .. } => {
                 "Invalid request format. Please check your input and try again.".to_string()
@@ -271,27 +293,62 @@ impl ErrorExt for WorkerError {
         let error_code = self.error_code();
         let severity = self.severity();
 
-        let mut context = format!("[{}] error_code={} severity={} timestamp={}",
-            error_code, error_code, severity, timestamp);
+        let mut context = format!(
+            "[{}] error_code={} severity={} timestamp={}",
+            error_code, error_code, severity, timestamp
+        );
 
         // Add specific context based on error type
         match self {
-            WorkerError::JobProcessingFailed { job_id, attempts, reason } => {
-                context.push_str(&format!(" job_id=\"{}\" attempts={} reason=\"{}\"", job_id, attempts, reason));
+            WorkerError::JobProcessingFailed {
+                job_id,
+                attempts,
+                reason,
+            } => {
+                context.push_str(&format!(
+                    " job_id=\"{}\" attempts={} reason=\"{}\"",
+                    job_id, attempts, reason
+                ));
             }
             WorkerError::JobTimeout { job_id, timeout } => {
-                context.push_str(&format!(" job_id=\"{}\" timeout_seconds={}", job_id, timeout.as_secs()));
+                context.push_str(&format!(
+                    " job_id=\"{}\" timeout_seconds={}",
+                    job_id,
+                    timeout.as_secs()
+                ));
             }
-            WorkerError::RetryableError { job_id, attempts, next_retry_in, reason } => {
-                context.push_str(&format!(" job_id=\"{}\" attempts={} next_retry_in={}s reason=\"{}\"",
-                    job_id, attempts, next_retry_in.as_secs(), reason));
+            WorkerError::RetryableError {
+                job_id,
+                attempts,
+                next_retry_in,
+                reason,
+            } => {
+                context.push_str(&format!(
+                    " job_id=\"{}\" attempts={} next_retry_in={}s reason=\"{}\"",
+                    job_id,
+                    attempts,
+                    next_retry_in.as_secs(),
+                    reason
+                ));
             }
-            WorkerError::MaxRetriesExceeded { job_id, total_attempts } => {
-                context.push_str(&format!(" job_id=\"{}\" total_attempts={}", job_id, total_attempts));
+            WorkerError::MaxRetriesExceeded {
+                job_id,
+                total_attempts,
+            } => {
+                context.push_str(&format!(
+                    " job_id=\"{}\" total_attempts={}",
+                    job_id, total_attempts
+                ));
             }
-            WorkerError::InvalidJobData { job_id, validation_errors } => {
-                context.push_str(&format!(" job_id=\"{}\" validation_errors=[{}]",
-                    job_id, validation_errors.join(", ")));
+            WorkerError::InvalidJobData {
+                job_id,
+                validation_errors,
+            } => {
+                context.push_str(&format!(
+                    " job_id=\"{}\" validation_errors=[{}]",
+                    job_id,
+                    validation_errors.join(", ")
+                ));
             }
             WorkerError::InternalError(reason) => {
                 context.push_str(&format!(" reason=\"{}\"", reason));
@@ -388,7 +445,7 @@ mod tests {
         let error = WorkerError::JobProcessingFailed {
             job_id: "job-123".to_string(),
             attempts: 2,
-            reason: "Test failure".to_string()
+            reason: "Test failure".to_string(),
         };
         assert_eq!(error.error_code(), "WORKER_JOB_PROCESSING_FAILED");
         assert!(error.user_message().contains("taking longer"));
