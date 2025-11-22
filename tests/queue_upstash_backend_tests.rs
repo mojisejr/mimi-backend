@@ -49,7 +49,7 @@ fn create_test_payload(question: &str) -> JobPayload {
 #[tokio::test]
 async fn test_upstash_enqueue_dequeue() {
     init();
-    
+
     // Skip test if Upstash credentials not set
     if std::env::var("UPSTASH_REDIS_URL").is_err() {
         println!("Skipping test: UPSTASH_REDIS_URL not set");
@@ -101,7 +101,7 @@ async fn test_upstash_enqueue_dequeue() {
 #[tokio::test]
 async fn test_upstash_ack_removes_job() {
     init();
-    
+
     if std::env::var("UPSTASH_REDIS_URL").is_err() {
         println!("Skipping test: UPSTASH_REDIS_URL not set");
         return;
@@ -119,7 +119,7 @@ async fn test_upstash_ack_removes_job() {
     )
     .await
     .expect("Failed to create queue");
-    
+
     let payload = create_test_payload("Test ACK");
 
     // Enqueue and dequeue
@@ -151,9 +151,9 @@ async fn test_upstash_ack_removes_job() {
 #[tokio::test]
 async fn test_upstash_nack_handling() {
     init();
-    
+
     init();
-    
+
     if std::env::var("UPSTASH_REDIS_URL").is_err() {
         println!("Skipping test: UPSTASH_REDIS_URL not set");
         return;
@@ -171,7 +171,7 @@ async fn test_upstash_nack_handling() {
     )
     .await
     .expect("Failed to create queue");
-    
+
     let payload = create_test_payload("Test NACK");
 
     // Enqueue and dequeue
@@ -263,7 +263,7 @@ async fn test_upstash_timeout_handling() {
 #[tokio::test]
 async fn test_upstash_queue_length() {
     init();
-    
+
     // Skip test if Upstash credentials not set
     if std::env::var("UPSTASH_REDIS_URL").is_err() {
         println!("Skipping test: UPSTASH_REDIS_URL not set");
