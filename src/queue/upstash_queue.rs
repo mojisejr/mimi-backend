@@ -283,15 +283,14 @@ impl Queue for UpstashQueue {
     }
 
     async fn dequeue(&self, consumer_id: &str) -> Result<Option<QueuedJob>, Box<dyn Error>> {
-        // XREADGROUP GROUP group_name consumer_id COUNT 1 BLOCK 5000 STREAMS stream_key >
+        // XREADGROUP GROUP group_name consumer_id COUNT 1 STREAMS stream_key >
+        // NOTE: Upstash REST API does not support BLOCK, so we use polling pattern instead
         let args = vec![
             "GROUP".to_string(),
             self.consumer_group.clone(),
             consumer_id.to_string(),
             "COUNT".to_string(),
             "1".to_string(),
-            "BLOCK".to_string(),
-            "5000".to_string(), // 5 second timeout
             "STREAMS".to_string(),
             self.stream_key.clone(),
             ">".to_string(),

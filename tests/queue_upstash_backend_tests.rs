@@ -6,10 +6,18 @@
 //! - Edge cases (network errors, timeouts, invalid responses)
 //! - Integration with Upstash Stream API (XADD, XREADGROUP, XACK)
 
+mod setup;
+
 use chrono::Utc;
 use mimivibe_backend::queue::{JobPayload, Queue};
 use serde_json::json;
 use uuid::Uuid;
+
+// Load environment variables from .env
+#[allow(dead_code)]
+fn init() {
+    setup::setup();
+}
 
 // Helper function to create test job payload
 fn create_test_payload(question: &str) -> JobPayload {
@@ -40,6 +48,8 @@ fn create_test_payload(question: &str) -> JobPayload {
 /// **Expected to FAIL initially (Red phase)** - UpstashQueue not implemented yet
 #[tokio::test]
 async fn test_upstash_enqueue_dequeue() {
+    init();
+    
     // Skip test if Upstash credentials not set
     if std::env::var("UPSTASH_REDIS_URL").is_err() {
         println!("Skipping test: UPSTASH_REDIS_URL not set");
@@ -48,9 +58,17 @@ async fn test_upstash_enqueue_dequeue() {
 
     use mimivibe_backend::queue::upstash_queue::UpstashQueue;
 
-    let queue = UpstashQueue::from_env()
-        .await
-        .expect("Failed to create queue");
+    // Use unique stream key for this test to avoid interference with other tests
+    let test_stream = format!("test:stream:{}", uuid::Uuid::new_v4());
+    let queue = UpstashQueue::new(
+        std::env::var("UPSTASH_REDIS_URL").unwrap(),
+        std::env::var("UPSTASH_REDIS_TOKEN").unwrap(),
+        test_stream.clone(),
+        format!("test-group-{}", uuid::Uuid::new_v4()),
+    )
+    .await
+    .expect("Failed to create queue");
+
     let payload = create_test_payload("Will I find love?");
 
     // Enqueue job
@@ -82,6 +100,8 @@ async fn test_upstash_enqueue_dequeue() {
 /// **Expected to FAIL initially (Red phase)** - UpstashQueue not implemented yet
 #[tokio::test]
 async fn test_upstash_ack_removes_job() {
+    init();
+    
     if std::env::var("UPSTASH_REDIS_URL").is_err() {
         println!("Skipping test: UPSTASH_REDIS_URL not set");
         return;
@@ -89,9 +109,17 @@ async fn test_upstash_ack_removes_job() {
 
     use mimivibe_backend::queue::upstash_queue::UpstashQueue;
 
-    let queue = UpstashQueue::from_env()
-        .await
-        .expect("Failed to create queue");
+    // Use unique stream key for this test
+    let test_stream = format!("test:stream:{}", uuid::Uuid::new_v4());
+    let queue = UpstashQueue::new(
+        std::env::var("UPSTASH_REDIS_URL").unwrap(),
+        std::env::var("UPSTASH_REDIS_TOKEN").unwrap(),
+        test_stream,
+        format!("test-group-{}", uuid::Uuid::new_v4()),
+    )
+    .await
+    .expect("Failed to create queue");
+    
     let payload = create_test_payload("Test ACK");
 
     // Enqueue and dequeue
@@ -122,6 +150,10 @@ async fn test_upstash_ack_removes_job() {
 /// **Expected to FAIL initially (Red phase)** - UpstashQueue not implemented yet
 #[tokio::test]
 async fn test_upstash_nack_handling() {
+    init();
+    
+    init();
+    
     if std::env::var("UPSTASH_REDIS_URL").is_err() {
         println!("Skipping test: UPSTASH_REDIS_URL not set");
         return;
@@ -129,9 +161,17 @@ async fn test_upstash_nack_handling() {
 
     use mimivibe_backend::queue::upstash_queue::UpstashQueue;
 
-    let queue = UpstashQueue::from_env()
-        .await
-        .expect("Failed to create queue");
+    // Use unique stream key for this test
+    let test_stream = format!("test:stream:{}", uuid::Uuid::new_v4());
+    let queue = UpstashQueue::new(
+        std::env::var("UPSTASH_REDIS_URL").unwrap(),
+        std::env::var("UPSTASH_REDIS_TOKEN").unwrap(),
+        test_stream,
+        format!("test-group-{}", uuid::Uuid::new_v4()),
+    )
+    .await
+    .expect("Failed to create queue");
+    
     let payload = create_test_payload("Test NACK");
 
     // Enqueue and dequeue
@@ -166,19 +206,16 @@ async fn test_upstash_nack_handling() {
 async fn test_upstash_network_error_handling() {
     use mimivibe_backend::queue::upstash_queue::UpstashQueue;
 
-    // Use invalid URL to simulate network error
-    std::env::set_var(
-        "UPSTASH_REDIS_URL",
-        "https://invalid-upstash-url.example.com",
-    );
-    std::env::set_var("UPSTASH_REDIS_TOKEN", "invalid-token");
-    std::env::set_var("UPSTASH_REDIS_STREAM_KEY", "test:stream");
-    std::env::set_var("UPSTASH_REDIS_CONSUMER_GROUP", "test-group");
+    // Create invalid queue directly (don't modify env vars which affects other tests)
+    let result = UpstashQueue::new(
+        "https://invalid-upstash-url.example.com".to_string(),
+        "invalid-token".to_string(),
+        "test:stream".to_string(),
+        "test-group".to_string(),
+    )
+    .await;
 
-    let result = UpstashQueue::from_env().await;
-    // Should handle error gracefully during initialization or first operation
-
-    // If queue creation succeeds (doesn't validate immediately), enqueue should fail
+    // Should fail on network request
     if let Ok(queue) = result {
         let payload = create_test_payload("Network error test");
         let enqueue_result = queue.enqueue(payload).await;
@@ -225,13 +262,9 @@ async fn test_upstash_timeout_handling() {
 /// 3. Multiple consumers see consistent length
 #[tokio::test]
 async fn test_upstash_queue_length() {
-    // Reset environment variables from previous tests
-    std::env::remove_var("UPSTASH_REDIS_URL");
-    std::env::remove_var("UPSTASH_REDIS_TOKEN");
-    std::env::remove_var("UPSTASH_REDIS_STREAM_KEY");
-    std::env::remove_var("UPSTASH_REDIS_CONSUMER_GROUP");
-
-    // Re-read from actual environment
+    init();
+    
+    // Skip test if Upstash credentials not set
     if std::env::var("UPSTASH_REDIS_URL").is_err() {
         println!("Skipping test: UPSTASH_REDIS_URL not set");
         return;
