@@ -6,6 +6,7 @@
 pub mod agents;
 pub mod api;
 pub mod auth;
+pub mod error;
 pub mod models;
 pub mod queue;
 pub mod utils;
