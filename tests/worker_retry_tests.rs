@@ -341,7 +341,9 @@ mod worker_integration_tests {
             let processing_error = mock_error();
 
             // Check retry policy
-            if let Some(retry_delay) = retry_policy.next_attempt_delay(&job, processing_error.as_ref()) {
+            if let Some(retry_delay) =
+                retry_policy.next_attempt_delay(&job, processing_error.as_ref())
+            {
                 // Job should be requeued (we'll simulate this with nack)
                 queue
                     .nack(
@@ -397,7 +399,8 @@ mod worker_integration_tests {
         let processing_error = mock_error();
 
         // Check if retry is needed
-        if let Some(_retry_delay) = retry_policy.next_attempt_delay(&job, processing_error.as_ref()) {
+        if let Some(_retry_delay) = retry_policy.next_attempt_delay(&job, processing_error.as_ref())
+        {
             // Simulate nack for retry - this should requeue the job
             queue
                 .nack(

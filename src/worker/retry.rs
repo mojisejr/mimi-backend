@@ -266,10 +266,10 @@ mod tests {
         let config = RetryConfig::default();
         let policy = RetryPolicy::new(config).unwrap();
 
-        assert!(policy.should_retry(1, &mock_error()));
-        assert!(policy.should_retry(2, &mock_error()));
-        assert!(!policy.should_retry(3, &mock_error()));
-        assert!(!policy.should_retry(4, &mock_error()));
+        assert!(policy.should_retry(1, mock_error().as_ref()));
+        assert!(policy.should_retry(2, mock_error().as_ref()));
+        assert!(!policy.should_retry(3, mock_error().as_ref()));
+        assert!(!policy.should_retry(4, mock_error().as_ref()));
     }
 
     #[test]
@@ -358,13 +358,13 @@ mod tests {
 
         // Job with 1 attempt should get retry delay
         let job_with_attempts = create_test_queued_job(1);
-        let next_delay = policy.next_attempt_delay(&job_with_attempts, &mock_error());
+        let next_delay = policy.next_attempt_delay(&job_with_attempts, mock_error().as_ref());
         assert!(next_delay.is_some());
         assert_eq!(next_delay.unwrap(), Duration::from_millis(200));
 
         // Job with 3 attempts should get None
         let job_at_max = create_test_queued_job(3);
-        let no_delay = policy.next_attempt_delay(&job_at_max, &mock_error());
+        let no_delay = policy.next_attempt_delay(&job_at_max, mock_error().as_ref());
         assert!(no_delay.is_none());
     }
 }
