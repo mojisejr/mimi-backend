@@ -9,6 +9,7 @@ pub mod auth;
 pub mod models;
 pub mod queue;
 pub mod utils;
+pub mod worker;
 
 #[cfg(test)]
 mod tests {
