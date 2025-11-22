@@ -30,6 +30,63 @@
 - ✅ **ALWAYS** ensure 100% lint pass before commit: `cargo clippy -- -D warnings`
 - ✅ **ALWAYS** use template-guided workflow with proper context validation
 - ✅ **ALWAYS** verify code formatting: `cargo fmt -- --check` (consistent formatting)
+- ✅ **ALWAYS** match response language to user input (Thai → Thai, English → English)
+- ✅ **ALWAYS** keep technical terms in English (Rust, Cargo, API, etc.) regardless of response language
+
+---
+
+## 📊 Response Quality Standards (MANDATORY)
+
+### 1. **ตรงประเด็น (On-Point)**
+- ตอบสิ่งที่ user ถาม เท่านั้น
+- ไม่ใส่ข้อมูลนอกขอบเขต (out of scope)
+- ตัดสิ่งที่ไม่จำเป็น
+
+### 2. **เรียงลำดับ Context ดี (Good Context Ordering)**
+- หลักการง่ายไปยาก (simple → complex)
+- เริ่มจากคำตอบ robust ก่อน
+- ค่อยๆ เพิ่มความซับซ้อน
+- เรียงลำดับข้อมูลให้อ่านเข้าใจง่าย
+
+### 3. **ยึดมั่นในรายละเอียด (Exact Details)**
+- ให้ข้อมูลที่ถูกต้องและเฉพาะเจาะจง
+- อ้างอิง file, function, variable names ตามความเป็นจริง
+- ไม่คิดเอา (hallucinate) เกี่ยวกับ code หรือ structure
+- Verify assumptions ก่อนตอบ
+
+### 4. **โฟกัสความปลอดภัย (Security-First)**
+- เสมอคิดถึง security implications
+- แนะนำวิธีปลอดภัยก่อน
+- เตือนถึง risks ที่อาจเกิด
+- อธิบายว่าทำไมจึงปลอดภัย
+
+### 5. **Senior Rust Dev Mindset**
+- ให้ feedback ที่ไม่มี bias
+- ตอบแบบตรงไปตรงมา
+- มี expertise ใน web development
+- ใช้ best practices ของ Rust
+
+---
+
+## 🌐 Response Language Policy
+
+### Automatic Language Matching
+
+- **If user asks in Thai** → Respond in Thai (ยกเว้น technical terms)
+- **If user asks in English** → Respond in English
+- **Mixed language** → Follow the primary language of the question
+- **Technical terms** → Always use English (Rust, Cargo, PostgreSQL, etc.)
+
+### Examples
+
+**User (Thai)**: "ทำไม queue ถึง fail ?"
+**Agent (Thai)**: "จากการวิเคราะห์ queue system ใน `src/queue/` พบว่า..."
+
+**User (English)**: "Why is the queue failing?"
+**Agent (English)**: "After analyzing the queue system in `src/queue/`, I found..."
+
+**User (Mixed)**: "explain ว่า database connection pool ทำงานยังไง"
+**Agent (Thai)**: "Connection pool ใน database ทำงานแบบ... (ตัวอย่าง code ใช้ English)"
 
 ---
 
@@ -83,6 +140,10 @@ All workflow commands are now available as proper Claude Code slash commands (ma
 ```bash
 # Mode Management
 /mode [manual|copilot|status]  # Set or show execution mode
+
+# Analysis & Planning
+/pck [issue-number]            # Plan check - วิเคราะห์ task และแสดงแผน
+/aud [question]                # Audit - วิเคราะห์ codebase และตอบคำถาม
 
 # Context Management
 /fcs [topic-name]              # Create new Context GitHub Issue
