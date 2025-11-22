@@ -13,6 +13,8 @@ Context Management - Create and manage context discussions for iterative develop
 /fcs list           # Show all active context issues
 ```
 
+**Note**: This is a Claude Code slash command using `/` prefix. Legacy `=fcs` commands are still supported for backward compatibility.
+
 ## Examples
 
 ```bash

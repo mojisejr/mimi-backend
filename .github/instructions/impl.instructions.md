@@ -4,7 +4,6 @@ applyTo: '**'
 
 # impl
 
-
 Implementation Workflow - Execute GitHub issue implementation based on current mode.
 
 ## Usage
@@ -13,6 +12,8 @@ Implementation Workflow - Execute GitHub issue implementation based on current m
 /impl [issue-number] [optional message]
 ```
 
+**Note**: This is a Claude Code slash command using `/` prefix. Legacy `=impl` commands are still supported for backward compatibility.
+
 ## Examples
 
 ```bash
@@ -20,6 +21,13 @@ Implementation Workflow - Execute GitHub issue implementation based on current m
 /impl 123 with extra context # Implement with additional context
 /impl 456                    # Implement issue #456
 ```
+
+## Language & Response Policy
+
+- **User asks in Thai** → Respond in Thai (ยกเว้น technical terms)
+- **User asks in English** → Respond in English
+- **Mixed language** → Follow the primary language
+- **Technical terms** → Always use English (Rust, Cargo, etc.)
 
 ## Implementation
 

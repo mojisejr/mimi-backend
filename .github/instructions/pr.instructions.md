@@ -12,6 +12,8 @@ Pull Request Creation - Create Pull Request from feature branch to staging.
 /pr [optional feedback]
 ```
 
+**Note**: This is a Claude Code slash command using `/` prefix. Legacy `=pr` commands are still supported for backward compatibility.
+
 ## Examples
 
 ```bash

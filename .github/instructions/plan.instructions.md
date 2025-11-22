@@ -12,6 +12,8 @@ Task Planning - Create atomic task GitHub Issues for implementation workflow.
 /plan [task description]
 ```
 
+**Note**: This is a Claude Code slash command using `/` prefix. Legacy `=plan` commands are still supported for backward compatibility.
+
 ## Examples
 
 ```bash
