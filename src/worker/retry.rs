@@ -285,7 +285,7 @@ mod tests {
         let policy = RetryPolicy::new(config).unwrap();
 
         // Test exponential backoff
-        let expected_delays = vec![
+        let expected_delays = [
             Duration::from_millis(100),  // 100 * 2^0
             Duration::from_millis(200),  // 100 * 2^1
             Duration::from_millis(400),  // 100 * 2^2

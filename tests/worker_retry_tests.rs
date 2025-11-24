@@ -137,7 +137,7 @@ mod retry_policy_tests {
         let policy = RetryPolicy::new(config).unwrap();
 
         // Test exponential backoff: base_delay * (multiplier ^ (attempts - 1))
-        let expected_delays = vec![
+        let expected_delays = [
             Duration::from_millis(100),  // Attempt 1: 100 * 2^0 = 100
             Duration::from_millis(200),  // Attempt 2: 100 * 2^1 = 200
             Duration::from_millis(400),  // Attempt 3: 100 * 2^2 = 400
@@ -413,7 +413,7 @@ mod worker_integration_tests {
 
             // Job should be back in queue for retry (in real implementation)
             // For this test, we just verify the retry policy logic worked
-            assert!(true, "Retry logic executed correctly");
+            // Retry logic execution point reached
         } else {
             // Should not reach here for first attempt
             panic!("Job should be retryable on first failure");
