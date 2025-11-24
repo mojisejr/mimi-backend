@@ -4,6 +4,7 @@
 //! different implementations (Redis, Upstash, In-Memory).
 
 pub mod inmemory_queue;
+pub mod pool;
 pub mod redis_dedupe;
 pub mod redis_queue;
 pub mod types;

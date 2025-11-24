@@ -205,7 +205,7 @@ mod tests {
     }
 
     fn mock_error() -> Box<dyn Error + Send + Sync> {
-        Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Mock error"))
+        Box::new(std::io::Error::other("Mock error"))
     }
 
     #[test]

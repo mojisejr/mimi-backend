@@ -51,7 +51,7 @@ fn create_test_queued_job(attempts: u32) -> QueuedJob {
 
 // Mock error for testing
 fn mock_error() -> Box<dyn std::error::Error + Send + Sync> {
-    Box::new(std::io::Error::new(std::io::ErrorKind::Other, "Mock error"))
+    Box::new(std::io::Error::other("Mock error"))
 }
 
 #[cfg(test)]
@@ -282,10 +282,7 @@ mod retry_policy_tests {
                 std::io::ErrorKind::ConnectionRefused,
                 "Connection refused",
             )),
-            Box::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                "Generic error",
-            )),
+            Box::new(std::io::Error::other("Generic error")),
         ];
 
         for error in errors {
