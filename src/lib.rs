@@ -9,6 +9,7 @@ pub mod auth;
 pub mod config;
 pub mod error;
 pub mod models;
+pub mod monitor;
 pub mod queue;
 pub mod utils;
 pub mod worker;
