@@ -308,7 +308,7 @@ impl ConnectionPool for RedisConnectionPool {
     fn get_metrics(&self) -> PoolMetrics {
         let available = self.semaphore.available_permits();
         let idle = available as u64;
-        
+
         // Use try_lock instead of blocking_lock to avoid blocking in async context
         match self.metrics.try_lock() {
             Ok(metrics) => metrics.to_public(idle),
@@ -465,7 +465,7 @@ impl ConnectionPool for UpstashConnectionPool {
     fn get_metrics(&self) -> PoolMetrics {
         let available = self.semaphore.available_permits();
         let idle = available as u64;
-        
+
         // Use try_lock instead of blocking_lock to avoid blocking in async context
         match self.metrics.try_lock() {
             Ok(metrics) => metrics.to_public(idle),
