@@ -73,8 +73,13 @@ impl RetryPolicy {
     ///
     /// # Example
     /// ```rust
-    /// let config = RetryConfig::default();
-    /// let policy = RetryPolicy::new(config)?;
+    /// use mimivibe_backend::worker::retry::{RetryConfig, RetryPolicy, RetryError};
+    /// fn example() -> Result<(), RetryError> {
+    ///     let config = RetryConfig::default();
+    ///     let policy = RetryPolicy::new(config)?;
+    ///     Ok(())
+    /// }
+    /// # example().ok();
     /// ```
     pub fn new(config: RetryConfig) -> Result<Self, RetryError> {
         Self::validate_config(&config)?;
