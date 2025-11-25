@@ -135,7 +135,7 @@ fn test_soft_deletable_trait_restore() {
 
 #[test]
 fn test_soft_delete_filter_excludes_deleted_items() {
-    let users = vec![
+    let users = [
         MockUser {
             id: Uuid::new_v4(),
             email: "active@example.com".to_string(),
@@ -161,7 +161,7 @@ fn test_soft_delete_filter_excludes_deleted_items() {
 
 #[test]
 fn test_soft_delete_filter_includes_all_when_include_deleted() {
-    let users = vec![
+    let users = [
         MockUser {
             id: Uuid::new_v4(),
             email: "active@example.com".to_string(),
@@ -511,7 +511,7 @@ fn test_filter_empty_collection() {
 
 #[test]
 fn test_filter_all_deleted_collection() {
-    let users = vec![
+    let users = [
         MockUser {
             id: Uuid::new_v4(),
             email: "deleted1@example.com".to_string(),
