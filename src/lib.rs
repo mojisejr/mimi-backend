@@ -11,6 +11,7 @@ pub mod error;
 pub mod models;
 pub mod monitor;
 pub mod queue;
+pub mod repository;
 pub mod utils;
 pub mod worker;
 
