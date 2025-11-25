@@ -1,6 +1,7 @@
 //! Repository Module
 //!
 //! Database repository patterns for MimiVibe Backend.
-//! Provides soft delete functionality and query helpers.
+//! Provides soft delete functionality, deduplication, and query helpers.
 
+pub mod dedupe;
 pub mod soft_delete;
