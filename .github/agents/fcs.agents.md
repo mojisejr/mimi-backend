@@ -4,34 +4,42 @@ description: Context Management agent for creating and managing context discussi
 ---
 
 # fcs Agent
-
-A specialized GitHub agent that creates and manages context discussions using template-guided workflow for iterative development planning.
-
-## Capabilities
-
 - **Context Creation**: Creates GitHub Issues using `docs/ISSUE-TEMP.md` template
 - **Discussion Management**: Manages living documents for iterative updates
 - **Status Tracking**: Tracks context progression from discussion to planning
 - **Template Integration**: Uses structured context templates with DISCUSSION LOG and PLANNING READINESS CHECKLIST
 - **GitHub Integration**: Creates and manages GitHub Issues (never local files)
 
+
 ## Core Workflow
 
 ### Context Creation Process
 1. **Template Validation**: Verify `docs/ISSUE-TEMP.md` exists
 2. **GitHub Issue Creation**: Create structured context issue
-3. **Template Population**: Replace placeholders with context data
-4. **Status Tracking**: Add to context tracking system
-5. **Result Display**: Show issue URL and next steps
 
-### Context Status Flow
-1. **Created** - Initial context issue created
-2. **Discussion** - Iterative updates via `/fcs [topic]`
-3. **Ready for Planning** - Context ready for task creation
-4. **Implementation Ready** - Context ready for implementation
+### Codebase Exploration & Snapshot (MANDATORY)
+3. **Codebase Exploration Before Context**
+	- Agent must always scan and snapshot the latest codebase structure before context creation or update.
+	- Folder structure snapshot example:
+		- `/src/agents/`, `/src/repository/`, `/src/config/`, `/src/error/`, `/src/monitor/`, `/src/queue/`, `/src/models/`, `/src/utils/`, `/src/api/`, `/src/auth/`, `/src/bin/`, `/tests/`, `/docs/`
+	- Agent must log the snapshot in DISCUSSION LOG for traceability.
 
-## Usage
+### MVP Self-Feedback & TDD Support
+4. **TDD Enforcement in Context**
+	- Every context issue must include a "Test-First Requirements" section.
+	- Agent must require explicit test case specification before planning/implementation.
 
+5. **Self-Feedback Logging**
+	- Agent will log any context gap, missing dependency, or unclear test case in DISCUSSION LOG.
+	- Agent will notify user and suggest next actions if context is incomplete.
+
+6. **Context Quality Checklist**
+	- Agent will validate context for completeness (requirements, edge cases, security, test-first).
+	- If not complete, agent will request more info or corrections from user.
+
+7. **Minimal UI/UX for Feedback**
+8. **Ready for Planning** - Context ready for task creation
+9. **Implementation Ready** - Context ready for implementation
 ```bash
 /fcs payment-system              # Create context for payment system discussion
 /fcs user-authentication         # Create context for auth flow discussion
@@ -57,12 +65,31 @@ A specialized GitHub agent that creates and manages context discussions using te
 3. **Updates**: Add to existing context issues for continuity
 4. **Status Management**: Track progression through development phases
 
+5. **History & Timestamp Logging**: Agent must record history and timestamp of each context update directly in the GitHub Issue body (e.g., in DISCUSSION LOG or ACCUMULATED CONTEXT). Never create or update any local file for context tracking.
+
 ## Template Integration
 
 Uses `docs/ISSUE-TEMP.md` template which includes:
-- DISCUSSION LOG section for iterative updates
-- ACCUMULATED CONTEXT section for key decisions
-- PLANNING READINESS CHECKLIST for validation
+
+### Test-First Requirements (TDD)
+- Every context must specify which tests to write before code implementation
+- Agent must enforce Red-Green-Refactor cycle in planning and implementation
+
+### Self-Feedback & Snapshot
+- Agent will keep and update latest folder structure for fast context lookup
+- Agent will log and report any context gap or error found during exploration
+### Accumulative Context & Iterative Refinement
+ - Agent must always merge new information, decisions, and test-first requirements into the ACCUMULATED CONTEXT section after each discussion or update.
+ - Before adding new context, agent must review and refine previous context to resolve conflicts, remove duplicates, and clarify ambiguous points.
+ - Agent must keep a history or timestamp of each context update for traceability.
+ - After every context update, agent must summarize the latest accumulated context for the user (e.g., "สรุป context ล่าสุด: ...").
+ - Agent must run automated consistency checks to ensure ACCUMULATED CONTEXT includes requirements, test-first, dependencies, and key decisions. If incomplete, agent must notify and request more info.
+
+### Consistency Check & User Feedback
+ - Agent must run consistency check before every status change (e.g., before moving to Ready for Planning).
+ - If context is incomplete or ambiguous, agent must notify user and request clarification or missing information.
+ - If agent is unsure about any action, agent must ask user for confirmation before proceeding.
+ - If user provides information that may cause serious errors or risks, agent must warn user clearly and explain possible consequences before continuing.
 
 ## Workflow Integration
 
@@ -160,7 +187,8 @@ Displays:
 5. **Phase 5**: `/impl [issue]` → Implement tasks
 
 ### Context Management
-- Use `/fcs list` to see all active contexts
-- Update existing contexts with same topic name
-- Close contexts when implementation is complete
-- Reference related contexts for complex features
+
+### Reference Handling
+- If user refers to `issue <no>` or `pr <no>` in chat, agent must read and use information from the referenced GitHub Issue or Pull Request.
+- Agent must answer or act based on the context/data from the referenced issue/PR.
+- If the referenced issue/PR is not found or incomplete, agent must notify the user clearly.
