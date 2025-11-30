@@ -13,33 +13,20 @@ description: Context Management agent for creating and managing context discussi
 
 ## Core Workflow
 
-### Context Creation Process
-1. **Template Validation**: Verify `docs/ISSUE-TEMP.md` exists
-2. **GitHub Issue Creation**: Create structured context issue
+### Context Creation Process (Vertical Slice/Use Case Base)
+1. **Template Validation**: Verify that `docs/ISSUE-TEMP.md` exists
+2. **GitHub Issue Creation**: Create context issue focused on a real use case/workflow that can be tested immediately, e.g. "Send question to queue", "login/auth flow"
 
-### Codebase Exploration & Snapshot (MANDATORY)
-3. **Codebase Exploration Before Context**
-	- Agent must always scan and snapshot the latest codebase structure before context creation or update.
-	- Folder structure snapshot example:
-		- `/src/agents/`, `/src/repository/`, `/src/config/`, `/src/error/`, `/src/monitor/`, `/src/queue/`, `/src/models/`, `/src/utils/`, `/src/api/`, `/src/auth/`, `/src/bin/`, `/tests/`, `/docs/`
-	- Agent must log the snapshot in DISCUSSION LOG for traceability.
+3. **Codebase Exploration & Snapshot (MANDATORY)**: Agent must scan and log the latest codebase structure in the DISCUSSION LOG every time
 
-### MVP Self-Feedback & TDD Support
-4. **TDD Enforcement in Context**
-	- Every context issue must include a "Test-First Requirements" section.
-	- Agent must require explicit test case specification before planning/implementation.
+4. **TDD Enforcement in Context**: Context issue must include a "Test-First Requirements" section specifying test cases to be written before implementation
 
-5. **Self-Feedback Logging**
-	- Agent will log any context gap, missing dependency, or unclear test case in DISCUSSION LOG.
-	- Agent will notify user and suggest next actions if context is incomplete.
+5. **Milestone & Output Focus**: Context must specify milestones, expected outputs, and tests that will be achieved after each phase/slice
 
-6. **Context Quality Checklist**
-	- Agent will validate context for completeness (requirements, edge cases, security, test-first).
-	- If not complete, agent will request more info or corrections from user.
+6. **Self-Feedback Logging**: Agent will log any context gap, missing dependency, or unclear test case in the DISCUSSION LOG and notify the user with suggestions
 
-7. **Minimal UI/UX for Feedback**
-8. **Ready for Planning** - Context ready for task creation
-9. **Implementation Ready** - Context ready for implementation
+7. **Context Quality Checklist**: Agent will validate that the context is complete (requirements, edge cases, security, test-first, milestones, and outputs that can be tested)
+8. **Status Tracking**: Context must transition status according to phase (Created → Discussion → Ready for Planning → Implementation Ready)
 ```bash
 /fcs payment-system              # Create context for payment system discussion
 /fcs user-authentication         # Create context for auth flow discussion
@@ -100,37 +87,24 @@ This command integrates with:
 
 ## Context Examples
 
-### Example 1: Payment System Context
-```bash
-/fcs payment-system
+### Context Creation Process (Vertical Slice/Use Case Base)
+1. **Template Validation**: ตรวจสอบว่า `docs/ISSUE-TEMP.md` มีอยู่จริง
+2. **GitHub Issue Creation**: สร้าง context issue โดยเน้น use case/workflow ที่ user ใช้งานจริงและ test ได้ทันที เช่น “ส่งคำถามเข้า queue”, “login/auth flow”
 ```
 Creates: `[CONTEXT] payment-system`
-- Discuss payment gateway options
-- Document security requirements
-- Validate API integration approaches
-
-### Example 2: User Authentication Context
-```bash
+3. **Codebase Exploration & Snapshot (MANDATORY)**: agent ต้อง scan และ log โครงสร้าง codebase ล่าสุดใน DISCUSSION LOG ทุกครั้ง
 /fcs user-authentication
 ```
-Creates: `[CONTEXT] user-authentication`
-- Discuss authentication methods
-- Document security considerations
-- Validate LINE OAuth integration
+4. **TDD Enforcement in Context**: context issue ต้องมี section "Test-First Requirements" ที่ระบุ test case ที่จะเขียนก่อน implementation
 
+5. **Milestone & Output Focus**: context ต้องระบุ milestone, output, และ test ที่จะได้หลังจบแต่ละ phase/slice
 ### Example 3: List Active Contexts
-```bash
-/fcs list
-```
+6. **Self-Feedback Logging**: agent จะ log context gap, missing dependency, หรือ test case ที่ไม่ชัดเจนใน DISCUSSION LOG และแจ้ง user พร้อมคำแนะนำ
 Displays:
-- All active context issues
-- Current status of each context
-- Suggested next actions
+7. **Context Quality Checklist**: agent จะ validate context ว่าครบ requirements, edge cases, security, test-first, milestone, และ output ที่ test ได้จริง
 
+8. **Status Tracking**: context ต้องเปลี่ยนสถานะตาม phase (Created → Discussion → Ready for Planning → Implementation Ready)
 ## Files
-
-- `docs/ISSUE-TEMP.md` - Context issue template
-- `.claude/active_contexts` - Tracks active context issues
 - GitHub Issues - Stores context discussions
 
 ## Context Status Management

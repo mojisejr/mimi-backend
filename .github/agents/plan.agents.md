@@ -5,11 +5,13 @@ description: Task Planning agent with hallucination prevention for creating atom
 
 # plan Agent
 
-A specialized GitHub agent that creates atomic task GitHub Issues using template-guided workflow with advanced hallucination prevention and codebase analysis.
+A specialized GitHub agent for creating atomic task GitHub Issues using template-guided workflow, advanced hallucination prevention, and vertical slice (use case base) planning tightly integrated with context issues.
 
 ## Capabilities
 
-- **Codebase Analysis**: Scans existing components, dependencies, and patterns before task creation
+- **Vertical Slice/Use Case Planning**: Focuses each task on a complete workflow/use case that is testable and delivers real output (e.g. "ส่งคำถามเข้า queue แล้วรอคำตอบ")
+- **Context Reference Enforcement**: Requires context issue (from fcs agent) to be `[Ready for Planning]` before creating any task
+- **Codebase Analysis**: Scans actual components, dependencies, and patterns before task creation
 - **Context7 Research**: Validates technologies and best practices using official documentation
 - **Previous Issue Context**: Reads related issues for dependency validation and sequential task relationships
 - **Hallucination Prevention**: 10-point reality checklist to prevent unrealistic requirements
@@ -18,64 +20,48 @@ A specialized GitHub agent that creates atomic task GitHub Issues using template
 
 ## Core Workflow
 
-### Phase 1: Hallucination Prevention Analysis
-1. **Codebase Analysis**:
-   - Scan existing components and patterns
-   - Check `Cargo.toml` for installed dependencies
-   - Verify available technologies and tools
-   - Review current architecture and file structure
+### Phase 1: Context Reference & Hallucination Prevention
+1. **Context Reference Enforcement**:
+   - ตรวจสอบ context issue ที่เกี่ยวข้อง (จาก fcs agent) ว่าอยู่สถานะ `[Ready for Planning]` เท่านั้น
+   - ดึงข้อมูล ACCUMULATED CONTEXT, test-first requirements, key decision, dependency จาก context issue
+   - Task Issue ต้องอ้างอิง context issue หมายเลข/ลิงก์ ใน section "Context Reference"
 
-2. **Context7 Research**:
-   - Document chosen technologies with official docs
-   - Verify best practices and implementation patterns
-   - Validate proposed solutions against documentation
+2. **Vertical Slice/Use Case Planning**:
+   - วางแผนแต่ละ task ให้โฟกัสที่ use case/workflow ที่ user ใช้งานจริงและ test ได้ทันที เช่น "API animals POST + queue + response + test"
+   - ทุก task ต้องมี test-first requirements ที่สามารถ run/test ได้จริงหลังจบ task
 
-3. **Previous Issue Context Check**:
-   - Read all related issues for dependency context
-   - Verify sequential task relationships
-   - Check that referenced components actually exist/will exist
-   - Validate implementation order and prerequisites
-
-4. **Hallucination Prevention Checklist**:
-   - ✅ Codebase components analyzed?
-   - ✅ Dependencies verified in `Cargo.toml`?
-   - ✅ Previous issue context checked?
-   - ✅ Technology stack validated?
-   - ✅ Implementation patterns reviewed?
-   - ✅ File structure existence confirmed?
-   - ✅ Sequential dependencies verified?
-   - ✅ Context7 documentation consulted?
-   - ✅ Assumptions vs reality checked?
-   - ✅ MVP-appropriate scope confirmed?
+3. **Codebase Analysis & Hallucination Prevention**:
+   - Scan actual components, dependencies (`Cargo.toml`), file structure
+   - Validate technology stack, implementation pattern, sequential dependencies
+   - 10-point reality checklist (เหมือนเดิม)
 
 ### Phase 2: Task Creation
-1. **Template Processing**: Use `docs/TASK-ISSUE-TEMP.md` with validated context
-2. **Issue Creation**: Create GitHub Issue with proper labels and structure
-3. **Mode Assignment**: Assign based on current execution mode
-4. **Context Inclusion**: Include verified dependencies and realistic requirements
+1. **Template Processing**: ใช้ `docs/TASK-ISSUE-TEMP.md` พร้อม context ที่ validated
+2. **Issue Creation**: สร้าง GitHub Issue พร้อม label, structure, และ context reference
+3. **Mode Assignment**: Assign ตาม execution mode
+4. **Context Inclusion**: ใส่ test-first, dependency, key decision จาก context issue
 
 ## Usage
 
 ```bash
-/plan Add payment webhook handler for Stripe
-/plan Implement user authentication with LINE LIFF
-/plan Create referral system with reward tracking
+# Vertical Slice/Use Case Example
+/plan Implement "Send question to queue and get answer" use case
+# โฟกัสที่ API, queue, response, test สำหรับ use case นี้เท่านั้น
+# อ้างอิง context issue [CONTEXT] queue-system
 ```
 
 ## Enhanced Examples
 
 Before (hallucination risk):
 ```bash
-/plan Implement comprehensive error handling system
+/plan Implement all queue infra and worker logic (แต่ test อะไรไม่ได้เลย)
 ```
 
-After (reality-based):
+After (vertical slice/use case base):
 ```bash
-# Plan analyzes codebase first:
-# - No testing framework exists → Setup Jest infrastructure
-# - Only Card/Button components exist → Error handling using existing patterns
-# - Current error handling: Basic try-catch → Enhance with Card-based displays
-/plan Add error handling using existing Card components and setup basic Jest testing
+/plan Implement "Send question to queue and get answer" use case
+# โฟกัสที่ API, queue, response, test สำหรับ use case นี้เท่านั้น
+# อ้างอิง context issue [CONTEXT] queue-system
 ```
 
 ## Mode-Specific Behavior
@@ -93,7 +79,8 @@ After (reality-based):
 ## Template Integration
 
 Uses `docs/TASK-ISSUE-TEMP.md` which includes:
-- Task description and validated requirements
+- Task description (vertical slice/use case base)
+- Context Reference section (อ้างอิง context issue หมายเลข/ลิงก์)
 - Execution mode assignment
 - 100% validation requirements (build, lint, type-check)
 - Implementation workflow steps
@@ -109,10 +96,11 @@ All created tasks require 100% validation:
 - **Test validation**: `cargo test` (if available)
 
 ### Enhanced Validation Context
-   - **Dependencies verified**: Based on actual `Cargo.toml` analysis
+- **Dependencies verified**: Based on actual `Cargo.toml` analysis
 - **Components confirmed**: Referenced components exist in codebase
 - **Patterns validated**: Follow established codebase patterns
 - **Scope realistic**: MVP-appropriate implementation requirements
+- **Context Reference**: อ้างอิง context issue ที่เกี่ยวข้อง, ดึง test-first requirements, key decision, dependency
 
 ## Hallucination Prevention Features
 
@@ -121,6 +109,7 @@ All created tasks require 100% validation:
 - **Sequential validation**: Previous issue context checked for continuity
 - **Pattern compliance**: Tasks follow existing codebase architecture and patterns
 - **Scope realism**: MVP-appropriate requirements based on project maturity
+- **Vertical Slice/Use Case Focus**: ทุก task ต้อง test ได้จริงหลังจบ ไม่ต้องรอครบทุก feature
 
 ## Safety Constraints
 
@@ -131,17 +120,18 @@ All created tasks require 100% validation:
 - ✅ Always validates dependencies and patterns
 - ✅ Always includes realistic scope and requirements
 - ✅ Always follows template-guided workflow
+- ✅ Always enforce context reference and vertical slice planning
 
 ## Integration Points
 
-- **Before**: Use `/fcs [topic]` for context discussions
+- **Before**: Use `/fcs [topic]` for context discussions (เน้น use case/workflow จริง)
 - **After**: Use `/impl [issue-number]` to implement created tasks
 - **Mode**: Use `/mode [manual|copilot]` to set execution mode
-- **Context**: Previous issues provide dependency context
+- **Context**: Previous issues provide dependency context, test-first, key decision
 
 ## Files
 
 - `docs/TASK-ISSUE-TEMP.md` - Task issue template
 - GitHub Issues - Stores task definitions and requirements
 - `.claude/current_mode` - Determines task assignment
- - `Cargo.toml` - Dependency verification source
+- `Cargo.toml` - Dependency verification source
