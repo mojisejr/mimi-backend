@@ -14,7 +14,7 @@ use mimivibe_backend::{
     api::tarot::{get_reading, health_check, request_reading, ApiState},
     config::env::EnvironmentConfig,
     middleware::rate_limiter::{rate_limit_middleware, RateLimiterConfig, RateLimiterState},
-    queue::upstash_queue::UpstashQueue,
+    queue::tarot_queue::TarotQueue,
 };
 use std::sync::Arc;
 use tower_http::cors::{Any, CorsLayer};
@@ -45,15 +45,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     println!("✅ Redis client initialized for rate limiting and caching");
 
-    // Initialize queue
-    let queue: Arc<dyn mimivibe_backend::queue::Queue + Send + Sync> =
-        Arc::new(UpstashQueue::from_env().await?);
-    println!("✅ Queue system initialized");
+    // Initialize TarotQueue (which handles both Redis queue and database)
+    let tarot_queue = Arc::new(TarotQueue::from_env().await?);
+    println!("✅ TarotQueue system initialized (Redis + Database integration)");
 
     // Create API state
     let api_state = ApiState {
         redis_client: redis_client.clone(),
-        queue,
+        tarot_queue,
     };
 
     // Create rate limiter state
