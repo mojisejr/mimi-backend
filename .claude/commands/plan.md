@@ -41,7 +41,7 @@ When creating a task issue:
 1. **Codebase Analysis** (ACTUALLY EXECUTED):
    - Load `.claude/utils/codebase-analyzer.js`
    - Execute `analyzeDependencies()` to check `Cargo.toml`
-   - Run `analyzeComponents()` to scan existing UI components
+   - Run `analyzeComponents()` to scan existing components
    - Execute `generateCodebaseSummary()` for current state
    - Store results for validation step
 
@@ -78,7 +78,6 @@ When creating a task issue:
 6. **Check Dependencies**:
    - Validate GitHub CLI (`gh`) availability
    - Verify `docs/TASK-ISSUE-TEMP.md` template exists
-   - Get current execution mode from `/mode`
 
 7. **Generate Reality-Checked Task Content**:
    - Use CodebaseAnalyzer results to create accurate requirements
@@ -90,33 +89,28 @@ When creating a task issue:
 
 8. **Create Task Issue**:
    - Title: `[TASK] {task description}`
-   - Labels: `task`, `{mode}-assignment` (manual/copilot)
+   - Labels: `task`
    - Body: Use `docs/TASK-ISSUE-TEMP.md` template
-   - Replace placeholders: `{{TASK_DESCRIPTION}}`, `{{EXECUTION_MODE}}`, `{{DATE}}`, `{{ASSIGNEE}}`
+   - Replace placeholders: `{{TASK_DESCRIPTION}}`, `{{DATE}}`
    - **Enhanced**: Include "Reality Check" section with actual analysis:
      ```markdown
      ## Reality Check
      **Dependencies Verified:**
-     - ✅ Available: next, react, typescript
-   - ❌ Missing: zod, react-hook-form (Install: use `cargo add` for Rust crates or add appropriate crates)
+     - ✅ Available: Rust, Axum framework, existing crates
+   - ❌ Missing: [specific missing dependencies] (Install: `cargo add ...`)
 
      **Components Confirmed:**
-     - ✅ Available: Button, Card, Input, Alert
-     - ❌ Missing: Form components (Use existing Input + validation)
+     - ✅ Available: [existing components]
+     - ❌ Missing: [missing components] (Use fallback alternatives)
 
      **Implementation Path:**
-     - Use existing API patterns from /api/farm
-     - Follow Card-based layout patterns from /components
-     - Implement manual validation initially, upgrade to zod when installed
+     - Use existing patterns from codebase
+     - Follow established architecture
      ```
 
-9. **Mode-Based Assignment**:
-   - **MANUAL**: Tasks assigned to human developer
-   - **COPILOT**: Tasks assigned to @copilot
-
-10. **Display Results**:
+9. **Display Results**:
     - Show issue URL and number
-    - Provide mode-specific next steps
+    - Provide implementation next steps
     - List implementation requirements
     - **Enhanced**: Show validation context and verified dependencies
     - Display reality check summary with missing pieces clearly identified
@@ -125,7 +119,6 @@ When creating a task issue:
 
 Uses `docs/TASK-ISSUE-TEMP.md` template which includes:
 - Task description and requirements
-- Execution mode assignment
 - 100% validation requirements (build, clippy, fmt)
 - Implementation workflow steps
 - Quality standards checklist
@@ -180,18 +173,12 @@ Tests to write BEFORE code implementation:
 - [ ] Code is refactored for quality while tests remain passing (Refactor phase)
 ```
 
-## Mode-Specific Next Steps
+## Implementation Next Steps
 
-### MANUAL Mode
-- Human developer will implement the task
+### Workflow Steps
 - Use `/impl [issue-number]` when ready to implement
 - Follow implementation workflow with 100% validation
 - Create PR with `/pr [feedback]` after implementation
-
-### COPILOT Mode
-- Use `/impl [issue-number]` to trigger automatic implementation
-- Copilot handles complete implementation workflow
-- Includes PR creation via `/pr` after implementation
 
 ## Implementation Requirements
 
@@ -215,6 +202,31 @@ All tasks require 100% validation:
 - **Scope realistic**: MVP-appropriate implementation requirements
 - **Test-First**: Tests written before code implementation
 
+### Backend API Specific Planning
+สำหรับ Backend API ที่ต่อ external services จริง (Upstash Redis, Gemini API, Supabase):
+
+1. **Use Case Validation**:
+   - ตรวจสอบว่า use case สามารถ test กับ env จริงได้
+   - Validate external dependencies (DATABASE_URL, UPSTASH_REDIS_URL, UPSTASH_REDIS_TOKEN, GEMINI_API_KEY) availability
+   - Check environment variables ที่จำเป็น
+
+2. **Vertical Slice Planning for Backend**:
+   - แต่ละ task ต้องมี API endpoint ที่ test ได้ทันที
+   - Include integration points (Upstash Redis, PostgreSQL, Gemini API)
+   - มี manual testing steps ด้วย curl/httpie
+   - ใช้ env variables ที่ถูกต้อง: API_KEY_DEFAULT, UPSTASH_REDIS_STREAM_KEY, REDIS_CONSUMER_GROUP
+
+3. **Immediate Testing Strategy**:
+   - API endpoint response testing
+   - Queue job creation/processing verification with real Upstash
+   - Database record validation with real Supabase
+   - External service integration checks (Gemini API, Upstash Redis)
+
+4. **Real Environment Validation**:
+   - ตรวจสอบ environment variables ที่จำเป็นก่อนสร้าง task
+   - ตรวจสอบ connectivity กับ external services ที่จะใช้
+   - ใช้ `/test-env` command สำหรับ validation
+
 ## Workflow Integration
 
 1. **Context Phase**: Use `/fcs [topic]` to create context discussion
@@ -226,7 +238,6 @@ All tasks require 100% validation:
 
 - `docs/TASK-ISSUE-TEMP.md` - Task issue template
 - GitHub Issues - Stores task definitions and requirements
-- `.claude/current_mode` - Determines task assignment
 - `.claude/utils/codebase-analyzer.js` - Reality analysis utilities
 
 ## Hallucination Prevention Implementation
@@ -283,7 +294,6 @@ if (validation.missingRequirements.length > 0) {
 
 - Always creates GitHub Issues (NEVER local .md files)
 - Tasks are atomic and focused on specific implementation
-- Current mode affects task assignment and implementation workflow
 - Ensure context is ready before creating tasks
 - **NEW**: All task requirements validated against actual codebase reality
 - **TEST-FIRST MANDATORY**: All tasks must include explicit test-first requirements

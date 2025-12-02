@@ -1,6 +1,6 @@
 # impl
 
-Implementation Workflow - Execute GitHub issue implementation based on current mode.
+Implementation Workflow - Execute GitHub issue implementation.
 
 ## Usage
 
@@ -70,18 +70,10 @@ Implementation Workflow - Execute GitHub issue implementation based on current m
    - Tests document the expected behavior before code exists
    - This ensures Test-Driven Development (TDD) workflow
 
-4. **Mode-Specific Execution**:
-
-   **MANUAL Mode**:
+4. **Implementation Execution**:
    - Agent (Claude) implements directly using code editing tools
    - Execute all implementation steps automatically
    - Handle all validation requirements
-   - Create commit with proper format
-   - Push branch to remote (NO PR creation)
-
-   **COPILOT Mode**:
-   - GitHub Copilot handles implementation automatically
-   - Execute all validation steps
    - Create commit with proper format
    - Push branch to remote (NO PR creation)
 
@@ -192,43 +184,131 @@ cargo test                                  # ✅ 100% SUCCESS
    Co-Authored-By: Claude <noreply@anthropic.com>"
    ```
 
-## Mode-Specific Behavior
-
-### MANUAL Mode
+## Implementation Behavior
 
 **Agent (Claude) Execution**:
 - Read and analyze task requirements from GitHub issue
 - Implement code changes directly using editing tools (Read/Edit/Write)
 - Run all validation steps automatically (build, lint, type-check)
+- Run **Backend-specific validation** (see below)
 - Create commit with proper format and push to feature branch
 - **NO PR creation** - ends with branch push
 
-### COPILOT Mode
+## Backend API Validation (MANDATORY after code implementation)
 
-**GitHub Copilot Execution**:
-- Trigger GitHub Copilot to handle implementation workflow
-- Monitor all validation steps completion
-- Ensure proper commit formatting and branch push
-- **NO PR creation** - ends with branch push
+### Phase 1: Environment Verification
+6. **Environment Variables Check**:
+   ```bash
+   # ตรวจสอบ environment variables ที่จำเป็นสำหรับ backend
+   echo "DATABASE_URL: ${DATABASE_URL:0:20}..."
+   echo "UPSTASH_REDIS_URL: ${UPSTASH_REDIS_URL:0:20}..."
+   echo "UPSTASH_REDIS_TOKEN: ${UPSTASH_REDIS_TOKEN:0:15}..."
+   echo "GEMINI_API_KEY: ${GEMINI_API_KEY:0:10}..."
+   echo "API_KEY_DEFAULT: ${API_KEY_DEFAULT:0:15}..."
+   echo "REDIS_STREAM_NAME: ${REDIS_STREAM_NAME:-not set}"
+   echo "REDIS_CONSUMER_GROUP: ${REDIS_CONSUMER_GROUP:-not set}"
+   ```
+
+### Phase 2: Service Integration Test
+7. **External Services Connectivity**:
+   ```bash
+   # Test Upstash Redis connection
+   curl -s "${UPSTASH_REDIS_URL}/ping" \
+        -H "Authorization: Bearer ${UPSTASH_REDIS_TOKEN}" > /dev/null 2>&1
+   if [ $? -eq 0 ]; then
+     echo "✅ Upstash Redis connected"
+   else
+     echo "❌ Upstash Redis connection failed"
+     exit 1
+   fi
+
+   # Test Gemini API (simple request)
+   curl -s -H "Content-Type: application/json" \
+        -H "x-goog-api-key: ${GEMINI_API_KEY}" \
+        -d '{"contents":[{"parts":[{"text":"test"}]}]}' \
+        https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent \
+        > /dev/null 2>&1
+   if [ $? -eq 0 ]; then
+     echo "✅ Gemini API connected"
+   else
+     echo "❌ Gemini API connection failed"
+     exit 1
+   fi
+   ```
+
+### Phase 3: API Service Testing
+8. **API Server Validation**:
+   ```bash
+   # Start API server
+   cargo run --bin api &
+   API_PID=$!
+   sleep 8
+
+   # Test health endpoint
+   curl -f http://localhost:3000/api/v1/health || exit 1
+   echo "✅ API server responding"
+
+   # Test new endpoints if any (example)
+   # curl -X POST http://localhost:3000/api/v1/tarot/read \
+   #   -H "Content-Type: application/json" \
+   #   -H "Authorization: Bearer ${API_KEY_DEFAULT}" \
+   #   -d '{"question":"ทดสอบระบบ"}' || exit 1
+
+   kill $API_PID
+   ```
+
+### Phase 4: Worker Service Testing (if applicable)
+9. **Background Worker Validation**:
+   ```bash
+   # Start worker if task includes queue processing
+   cargo run --bin worker &
+   WORKER_PID=$!
+   sleep 5
+
+   # Verify worker is running (basic check)
+   kill -0 $WORKER_PID 2>/dev/null
+   if [ $? -eq 0 ]; then
+     echo "✅ Worker process running"
+   else
+     echo "❌ Worker process failed to start"
+     exit 1
+   fi
+
+   kill $WORKER_PID
+   ```
+
+### Enhanced Backend Commit Format
+```bash
+git commit -m "feat: [feature description]
+
+- Address #[issue-number]: [task title]
+- Test-first implemented: Tests written before code implementation
+- Red-Green-Refactor cycle followed (Red → Green → Refactor)
+- Build validation: 100% PASS (cargo build --release)
+- Lint validation: 100% PASS (cargo clippy -- -D warnings)
+- Type validation: 100% PASS (cargo check)
+- Backend validation: Environment & services verified
+- API endpoint: Manual testing passed
+
+🤖 Generated with Claude Code
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
 
 ## Error Handling
 
 - **Issue not found**: Clear error with issue number
 - **Invalid environment**: Git status and directory checks
 - **Validation failures**: Stop workflow and report errors
-- **Mode-specific**: Provide appropriate guidance per mode
 
 ## Integration
 
 - **Before**: Use `/plan [task]` to create task issues
 - **After**: Use `/pr [feedback]` to create pull request
-- **Mode**: Use `/mode [manual|copilot]` to set execution mode
 - **Context**: Use `/fcs [topic]` for context discussions
 
 ## Files
 
 - Feature branches: `feature/task-{issue}-{description}`
-- `.claude/current_mode` - Determines execution behavior
 - GitHub Issues - Task definitions and requirements
 
 ## Notes
@@ -237,5 +317,4 @@ cargo test                                  # ✅ 100% SUCCESS
 - **HARD ENFORCED**: Command will fail if trying to run from main branch
 - Feature branch naming is strictly enforced
 - 100% validation is mandatory before commits
-- Mode affects who performs implementation steps
 - Never merge PRs yourself - wait for team approval

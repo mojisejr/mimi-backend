@@ -66,20 +66,47 @@
 
 ### 🏗️ TECHNICAL ARCHITECTURE
 **System Components:**
-- **Frontend Components**: [components/pages ที่จะ implement]
 - **Backend Services**: [APIs/services ที่จะ implement]
+- **API Endpoints**: [specific endpoints ที่จะสร้าง]
+- **Background Workers**: [worker processes ที่จะ implement]
+- **Queue Systems**: [Redis/Upstash queue operations]
 - **Database Models**: [tables/models ที่จะ implement]
 - **External Integrations**: [services ที่ต้อง connect]
 
 **Architecture Patterns:**
 - [Pattern 1 - design pattern ที่จะใช้]
 - [Pattern 2 - technical approach ที่เลือก]
+- [Pattern 3 - async/await patterns สำหรับ backend]
+- [Pattern 4 - error handling strategies]
 
 **Key Technical Requirements:**
-- **Performance**: [ความเร็ว/ขนาด/response time]
-- **Security**: [ความปลอดภัยที่ต้องการ]
-- **Scalability**: [การรองรับผู้ใช้งาน]
-- **Compatibility**: [browser/device support]
+- **Performance**: [response time < 200ms, concurrent users, throughput]
+- **Security**: [API key authentication, data encryption, rate limiting]
+- **Scalability**: [horizontal scaling, queue processing capacity]
+- **Reliability**: [error handling, retry logic, dead letter queue]
+- **Monitoring**: [logging, metrics, health checks]
+
+### 🔧 BACKEND ENVIRONMENT VALIDATION
+**Environment Variables Check:**
+- [ ] DATABASE_URL ตั้งค่าและเชื่อมต่อได้ (Supabase)
+- [ ] UPSTASH_REDIS_URL และ UPSTASH_REDIS_TOKEN ถูกต้อง
+- [ ] GEMINI_API_KEY สามารถเรียกใช้ได้
+- [ ] API_KEY_DEFAULT มีค่าสำหรับ development
+- [ ] Queue configuration: REDIS_STREAM_NAME, REDIS_CONSUMER_GROUP
+
+**External Services Connectivity:**
+- [ ] Upstash Redis connection test ผ่าน
+- [ ] PostgreSQL database connection test ผ่าน
+- [ ] Gemini API connectivity test ผ่าน
+- [ ] `/test-env` command run และผ่านทุกรายการ
+- [ ] Service response times meet requirements
+
+**Development Environment Setup:**
+- [ ] `cargo build --release` passes with zero errors
+- [ ] `cargo clippy -- -D warnings` passes with zero warnings
+- [ ] `cargo fmt -- --check` passes (code formatting)
+- [ ] `cargo test` integration tests pass
+- [ ] Local development environment ready with real services
 
 ### 🎯 IMPLEMENTATION DIRECTIONS
 **Breaking Down Strategy:**
