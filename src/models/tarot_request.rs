@@ -35,10 +35,6 @@ pub struct TarotRequest {
     /// Optional user identifier for rate limiting
     /// If not provided, will use IP address
     pub user_id: Option<String>,
-
-    /// Optional reading type (e.g., "3_card", "5_card")
-    /// Defaults to "3_card" if not specified
-    pub reading_type: Option<String>,
 }
 
 impl TarotRequest {
@@ -70,14 +66,7 @@ impl TarotRequest {
         self.question.trim().to_string()
     }
 
-    /// Get the reading type with default fallback
-    pub fn get_reading_type(&self) -> String {
-        self.reading_type
-            .as_deref()
-            .unwrap_or("3_card")
-            .to_string()
-    }
-
+  
     /// Get user identifier for rate limiting
     pub fn get_rate_limit_key(&self, fallback_ip: Option<&str>) -> String {
         if let Some(user_id) = &self.user_id {
@@ -204,7 +193,6 @@ mod tests {
         let request = TarotRequest {
             question: "ควรทำ".to_string(), // Exactly 5 characters
             user_id: None,
-            reading_type: None,
         };
 
         assert!(request.validate().is_ok());
@@ -215,7 +203,6 @@ mod tests {
         let request = TarotRequest {
             question: "a".repeat(100), // Exactly 100 ASCII characters
             user_id: None,
-            reading_type: None,
         };
 
         assert!(request.validate().is_ok());
@@ -226,7 +213,6 @@ mod tests {
         let request = TarotRequest {
             question: "abcd".to_string(), // 4 ASCII characters
             user_id: None,
-            reading_type: None,
         };
 
         assert!(request.validate().is_err());
@@ -245,7 +231,6 @@ mod tests {
         let request = TarotRequest {
             question: "a".repeat(101), // 101 ASCII characters
             user_id: None,
-            reading_type: None,
         };
 
         assert!(request.validate().is_err());
@@ -264,7 +249,6 @@ mod tests {
         let request = TarotRequest {
             question: "".to_string(),
             user_id: None,
-            reading_type: None,
         };
 
         assert!(request.validate().is_err());
@@ -278,7 +262,6 @@ mod tests {
         let request = TarotRequest {
             question: "   ".to_string(),
             user_id: None,
-            reading_type: None,
         };
 
         assert!(request.validate().is_err());
@@ -292,41 +275,18 @@ mod tests {
         let request = TarotRequest {
             question: "  ควรจะทำอะไรดีครับ  ".to_string(),
             user_id: None,
-            reading_type: None,
         };
 
         assert!(request.validate().is_ok());
         assert_eq!(request.get_trimmed_question(), "ควรจะทำอะไรดีครับ");
     }
 
-    #[test]
-    fn test_get_reading_type_default() {
-        let request = TarotRequest {
-            question: "ควรจะทำอะไรดีครับ".to_string(),
-            user_id: None,
-            reading_type: None,
-        };
-
-        assert_eq!(request.get_reading_type(), "3_card");
-    }
-
-    #[test]
-    fn test_get_reading_type_custom() {
-        let request = TarotRequest {
-            question: "ควรจะทำอะไรดีครับ".to_string(),
-            user_id: None,
-            reading_type: Some("5_card".to_string()),
-        };
-
-        assert_eq!(request.get_reading_type(), "5_card");
-    }
-
+    
     #[test]
     fn test_get_rate_limit_key_with_user_id() {
         let request = TarotRequest {
             question: "ควรจะทำอะไรดีครับ".to_string(),
             user_id: Some("user123".to_string()),
-            reading_type: None,
         };
 
         assert_eq!(request.get_rate_limit_key(None), "rate_limit:user:user123");
@@ -337,7 +297,6 @@ mod tests {
         let request = TarotRequest {
             question: "ควรจะทำอะไรดีครับ".to_string(),
             user_id: None,
-            reading_type: None,
         };
 
         assert_eq!(request.get_rate_limit_key(Some("192.168.1.1")), "rate_limit:ip:192.168.1.1");
@@ -348,7 +307,6 @@ mod tests {
         let request = TarotRequest {
             question: "ควรจะทำอะไรดีครับ".to_string(),
             user_id: None,
-            reading_type: None,
         };
 
         assert_eq!(request.get_rate_limit_key(None), "rate_limit:anonymous");

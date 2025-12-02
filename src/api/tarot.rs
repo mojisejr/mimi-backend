@@ -32,7 +32,6 @@ pub struct ApiState {
 /// {
 ///   "question": "ควรจะลงทุนอะไรดีครับ",
 ///   "user_id": "optional-user-id",
-///   "reading_type": "optional-3-card-or-5-card"
 /// }
 /// ```
 ///
@@ -63,14 +62,13 @@ pub async fn request_reading(
         job_id: job_id.to_string(),
         user_id: request.user_id.as_ref().and_then(|u| Uuid::parse_str(u).ok()).unwrap_or_else(Uuid::new_v4),
         question: request.get_trimmed_question(),
-        card_count: if request.get_reading_type() == "5_card" { 5 } else { 3 },
+        card_count: 3, // Default to 3 cards (system will randomize actual count)
         schema_version: "1".to_string(),
         prompt_version: "v2025-11-20-a".to_string(),
         dedupe_key: None,
         trace_id: Some(job_id.to_string()),
         created_at: chrono::Utc::now(),
         metadata: json!({
-            "reading_type": request.get_reading_type(),
             "client_ip": extract_client_ip(&headers),
             "user_agent": extract_user_agent(&headers),
             "original_user_id": request.user_id
