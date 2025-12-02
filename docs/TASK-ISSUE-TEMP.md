@@ -1,5 +1,5 @@
-# Atomic Task Issue Template for GitHub Copilot
-**Template for creating explicit atomic tasks that GitHub Copilot can execute independently**
+# Atomic Task Issue Template
+**Template for creating explicit atomic tasks for implementation**
 
 ---
 
@@ -33,11 +33,6 @@
 ### Body Template
 ```markdown
 ## [TASK-XXX-X] Atomic: [Single Deliverable]
-
-### 🤖 EXECUTION MODE: [MANUAL | COPILOT] (MANDATORY)
-**Current Mode: [MODE SETTING]**
-- **MANUAL**: Human implementation required
-- **COPILOT**: GitHub Copilot implementation required
 
 ### 🎯 SINGLE OBJECTIVE (MANDATORY)
 **Complete this one specific deliverable end-to-end:**
@@ -104,36 +99,133 @@ CREATE TABLE IF NOT EXISTS [table_name] (
 ALTER POLICY ...;
 ```
 
-### 🎨 UI/UX REQUIREMENTS (if task touches frontend)
-- If the task includes frontend work, clearly mark it as such and provide exact frontend file paths and tech stack. For backend-only Rust tasks, frontend/UI requirements are NOT required.
+### 🔧 BACKEND VALIDATION REQUIREMENTS (MANDATORY for all backend tasks)
+**Environment Testing (MANDATORY):**
+- [ ] All required environment variables are set and accessible
+- [ ] External services connectivity verified with `/test-env` command
+- [ ] Database connection to real Supabase PostgreSQL works
+- [ ] Upstash Redis operations work correctly with real credentials
+- [ ] Gemini API calls succeed with real API key
 
-### 🧪 TESTING REQUIREMENTS (Rust project)
-- **Unit Tests**: All core functions and utilities using `cargo test`
-- **Integration Tests**: API integration tests under `tests/` (Axum handlers, db interactions)
-- **Database Migrations**: SQLx migrations must run successfully in CI (`sqlx migrate` or `cargo sqlx prepare` when used)
-- **Formatting/Linting**: `cargo fmt -- --check`, `cargo clippy -- -D warnings`
+**Manual API Testing (MANDATORY):**
+- [ ] New API endpoints respond correctly via curl/httpie
+- [ ] Error handling works with real external services
+- [ ] Performance meets requirements (target < 200ms response time)
+- [ ] Queue operations complete successfully
+- [ ] Database operations persist correctly in production-like environment
 
-### ✅ ACCEPTANCE CRITERIA (100% MANDATORY) — Rust
+**Integration Points Validation:**
+- [ ] API → Queue → Worker → Database end-to-end flow works
+- [ ] External service error handling functions gracefully
+- [ ] Authentication/authorization works with real API keys
+- [ ] Background worker processes handle real queue jobs
+- [ ] Retry logic and error recovery mechanisms work correctly
+
+**Service Integration Tests:**
+- [ ] Upstash Redis Streams operations test
+- [ ] PostgreSQL transaction and query tests
+- [ ] Gemini API integration and rate limiting tests
+- [ ] Background worker concurrency and timeout tests
+
+### 🧪 BACKEND TESTING REQUIREMENTS (Rust project)
+
+**Unit Tests:** Core business logic and internal functions
+- [ ] All core functions and utilities using `cargo test`
+- [ ] Agent pipeline logic tests (Question Filter, Analyzer, Reader)
+- [ ] Queue management logic tests
+- [ ] Data transformation and validation tests
+- [ ] Error handling and edge case tests
+
+**Integration Tests:** API endpoints and external service interactions
+- [ ] API endpoint tests under `tests/` (Axum handlers)
+- [ ] Database operation tests with real PostgreSQL
+- [ ] Queue operation tests with real Upstash Redis
+- [ ] External service tests (Gemini API integration)
+- [ ] End-to-end workflow tests (API → Queue → Worker → DB)
+
+**Service Integration Tests:** Real external service connectivity
+- [ ] Upstash Redis Streams operations test
+- [ ] PostgreSQL transaction and query tests
+- [ ] Gemini API integration and rate limiting tests
+- [ ] Background worker process tests
+- [ ] Configuration loading and environment validation tests
+
+**Database and Schema Tests:**
+- [ ] SQLx migrations run successfully in CI (`sqlx migrate` or `cargo sqlx prepare`)
+- [ ] Database schema validation tests
+- [ ] Data consistency and constraint tests
+- [ ] Migration rollback tests (if applicable)
+
+**Performance and Load Tests:**
+- [ ] API response time tests (< 200ms target)
+- [ ] Concurrent request handling tests
+- [ ] Queue processing throughput tests
+- [ ] Database query optimization tests
+
+**Code Quality:**
+- [ ] `cargo fmt -- --check` passes (code formatted)
+- [ ] `cargo clippy -- -D warnings` passes with zero warnings
+- [ ] `cargo check` passes (type safety)
+- [ ] Code coverage meets minimum threshold
+
+### ✅ ACCEPTANCE CRITERIA (100% MANDATORY) — Rust Backend
+
+**Build and Code Quality:**
 - [ ] `cargo build --release` passes with zero errors
 - [ ] `cargo clippy -- -D warnings` passes with zero warnings/errors
 - [ ] `cargo fmt -- --check` passes (code formatted)
 - [ ] `cargo check` passes (type checks)
-- [ ] `cargo test` passes with zero failures
-- [ ] Test-first implemented (tests written before code)
-- [ ] Test coverage complete for all new code paths
-- [ ] Red-Green-Refactor cycle followed (Red → Green → Refactor)
-- [ ] Single deliverable works end-to-end
-- [ ] No unintended side effects
 - [ ] Code follows project patterns and style guidelines
 
-### ✅ REPLACEMENT VS NEW-PAGE CHECKS (MANDATORY WHEN REPLACING MOCKS)
-- If the task replaces a mock/tab content, the issue MUST include a **Files to Modify** section (exact paths). The implementer must not create a separate page or route unless the task explicitly lists that new file under **Files to Create**.
-- Acceptance checks for replacement tasks:
-  - [ ] No new route or dedicated page added for the replaced tab (verify diff for new route files)
-  - [ ] The mock component/file at the listed path is removed or replaced in-place
-  - [ ] Existing navigation/tabs still point to the same route/component (no new route required)
-  - [ ] Tests updated to reflect replaced mock (or removed mocks)
-  - [ ] A short note in PR description: "Replaced mock at `path/to/file` — no new page created"
+**Testing Requirements:**
+- [ ] `cargo test` passes with zero failures
+- [ ] Test-first implemented (tests written before code implementation)
+- [ ] Test coverage complete for all new code paths
+- [ ] Red-Green-Refactor cycle followed (Red → Green → Refactor)
+- [ ] Integration tests with real external services pass
+
+**Backend Validation (MANDATORY):**
+- [ ] `/test-env` command passes all connectivity tests
+- [ ] Environment variables validated and accessible
+- [ ] New API endpoints work with real services (test via curl)
+- [ ] Queue operations work with real Upstash Redis
+- [ ] Database operations persist correctly
+- [ ] External service integration (Gemini API) works
+- [ ] Performance meets requirements (< 200ms API response)
+
+**Operational Requirements:**
+- [ ] Single deliverable works end-to-end with real services
+- [ ] No unintended side effects on production environment
+- [ ] Error handling works gracefully with external service failures
+- [ ] Background worker processes jobs correctly
+- [ ] Retry logic and error recovery mechanisms functional
+
+**Documentation Requirements:**
+- [ ] API endpoints documented (request/response formats)
+- [ ] Environment variables usage documented
+- [ ] Error scenarios and handling documented
+- [ ] Integration points with external services documented
+
+### 🔄 BACKEND WORKFLOW VALIDATION
+**Pre-Implementation Requirements:**
+- [ ] Run `/test-env` to verify all external services are accessible
+- [ ] Check environment variables are properly configured
+- [ ] Verify that current branch is clean (`git status`)
+- [ ] Confirm that no conflicting changes are in progress
+
+**Post-Implementation Validation:**
+- [ ] Build validation: `cargo build --release` (100% success)
+- [ ] Lint validation: `cargo clippy -- -D warnings` (zero warnings)
+- [ ] Format validation: `cargo fmt -- --check` (consistent formatting)
+- [ ] Type validation: `cargo check` (type safety)
+- [ ] Test validation: `cargo test` (zero failures)
+
+**Environment-Specific Testing:**
+- [ ] API server starts and responds to health checks
+- [ ] Background worker processes queue jobs correctly
+- [ ] Database operations work with real Supabase
+- [ ] Queue operations work with real Upstash Redis
+- [ ] External service integrations work with real APIs
 
 ### 🔄 GIT WORKFLOW (MANDATORY)
 - **Branch Name**: `feature/task-[XXX]-[X]-[description]`
@@ -145,8 +237,13 @@ ALTER POLICY ...;
 
   - Address TASK-XXX-X: [task title]
   - Complete atomic implementation
-  - Build validation: 100% PASS (0 errors, 0 warnings)
-  - Linter validation: 100% PASS (0 violations)
+  - Test-first implemented (tests written before code)
+  - Red-Green-Refactor cycle followed (Red → Green → Refactor)
+  - Build validation: 100% PASS (cargo build --release)
+  - Lint validation: 100% PASS (cargo clippy -- -D warnings)
+  - Format validation: 100% PASS (cargo fmt -- --check)
+  - Backend validation: Environment & services verified
+  - API endpoint: Manual testing passed with real services
   - Tests: 100% PASS (0 failures)
 
   🤖 Generated with [Claude Code](https://claude.com/claude-code)
@@ -271,10 +368,6 @@ ALTER POLICY ...;
 ```markdown
 ## [TASK-009-1] Atomic: Create Members Database Table
 
-### 🤖 EXECUTION MODE: COPILOT (MANDATORY)
-**Current Mode: COPILOT**
-- **COPILOT**: GitHub Copilot implementation required
-
 ### 🎯 SINGLE OBJECTIVE (MANDATORY)
 **Complete this one specific deliverable end-to-end:**
 - Create `members` table in Supabase with exact schema and RLS policies
@@ -371,10 +464,6 @@ CREATE POLICY "Users can update own profile"
 ### Example 2: Axum Handler Creation (Manual Mode)
 ```markdown
 ## [TASK-009-2] Atomic: Create Tarot Reading API Handler
-
-### 🤖 EXECUTION MODE: MANUAL (MANDATORY)
-**Current Mode: MANUAL**
-- **MANUAL**: Human implementation required
 
 ### 🎯 SINGLE OBJECTIVE (MANDATORY)
 **Complete this one specific deliverable end-to-end:**

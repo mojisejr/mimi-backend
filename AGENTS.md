@@ -105,8 +105,8 @@
 
 - Used for: `=plan > [task description]`
 - **ALWAYS creates GitHub Issue** - Never creates local .md files
-- Creates atomic tasks based on current mode (MANUAL/COPILOT)
-- Contains: EXECUTION MODE field, 100% validation requirements
+- Creates atomic tasks for implementation
+- Contains: 100% validation requirements
 
 **Knowledge Issue Template** - `/docs/KNOWLEDGE-TEMP.md`:
 
@@ -115,45 +115,45 @@
 - Creates structured knowledge entries with AI honest feedback
 - Contains: Problem → Solution → Lessons Learned → Links
 
-### Mode-Based Execution System
+### Execution System
 
-**Default Mode**: MANUAL (Claude implementation)
-
-**Mode Commands**:
-
-```bash
-=mode manual     # Tasks assigned to Claude (non-Copilot agent)
-=mode copilot     # Tasks assigned to @copilot
-=mode status      # Show current execution mode
-```
-
-**Mode-Specific Behavior**:
-
-- **MANUAL Mode**: `=plan` creates tasks assigned to Claude, `=impl` triggers Claude implementation using code editing tools
-- **COPILOT Mode**: `=plan` creates tasks assigned to @copilot, `=impl` triggers copilot implementation
+**Direct Execution**:
+- `=plan` creates atomic tasks for implementation
+- `=impl` triggers direct implementation using code editing tools
+- Agent handles complete workflow from planning to implementation
 
 ### Core Commands
 
-**✅ NEW: Claude Code Slash Commands Implemented!**
-All workflow commands are now available as proper Claude Code slash commands (markdown files in `.claude/commands/`).
+**✅ NEW: Smart Workflow System Implemented!**
+All workflow commands now feature intelligent auto-analysis and progressive planning.
 
 ```bash
-# Mode Management
-/mode [manual|copilot|status]  # Set or show execution mode
+# 🚀 Smart Task Management (NEW!)
+/task [feature description]                    # Auto-detect complexity and suggest workflow
+/task "Add user authentication"                  # Auto-analyze and recommend approach
+/task "Fix typo in API response" --quick       # Force quick implementation
+/task "Build complete e-commerce system" --deep # Force comprehensive planning
+/task --analyze "Complex workflow system"        # Analyze complexity only
 
 # Analysis & Planning
 /pck [issue-number]            # Plan check - วิเคราะห์ task และแสดงแผน
 /aud [question]                # Audit - วิเคราะห์ codebase และตอบคำถาม
 
-# Context Management
-/fcs [topic-name]              # Create new Context GitHub Issue
+# Context Management (Enhanced)
+/fcs [topic-name]              # Create new Context GitHub Issue (lightweight auto-detected)
+/fcs [topic-name] --deep       # Force comprehensive context
 /fcs list                      # Show all active Context Issues
 
-# Task Management
-/plan [task description]       # Create Task GitHub Issue using docs/TASK-ISSUE-TEMP.md
+# Task Management (Still available)
+/plan [task description]       # Create Task GitHub Issue using SMART-TASK-TEMP.md
 /impl [issue-number]           # Implementation workflow for specific GitHub issue
 /impl [issue-number] [msg]     # Implementation with additional context
 /pr [feedback]                 # Create Pull Request from feature branch (to staging)
+
+# Feature Testing (NEW!)
+/test-complete-feature [feature]     # Comprehensive end-to-end feature testing
+/test-complete-feature --recent       # Test most recently completed feature
+/test-complete-feature auth --deep    # Include performance and security testing
 
 # Knowledge Management
 /khub                          # 🔍 Read Knowledge Hub #32 (MANDATORY first step)
@@ -163,6 +163,13 @@ All workflow commands are now available as proper Claude Code slash commands (ma
 /ksearch "[query]"             # Search across all knowledge entries
 /krecent                       # Show last 5 knowledge updates
 /kcategory [category]          # Show knowledge for specific category
+
+# Backend Environment Testing
+/test-env [service]            # Test external services connectivity (redis, database, gemini, all)
+/test-env                      # Test all services (default)
+/test-env redis               # Test only Upstash Redis connectivity
+/test-env database            # Test only PostgreSQL connectivity
+/test-env gemini              # Test only Gemini API connectivity
 
 # Other Commands
 /rrr [message]                 # Create daily retrospective GitHub Issue
@@ -190,55 +197,62 @@ All workflow commands are now available as proper Claude Code slash commands (ma
 2. **Phase 2**: `/fcs [topic]` → Update context **GitHub Issue** iteratively
 3. **Phase 3**: Context reaches `[Ready for Planning]` status → Ready for planning
 4. **Phase 4**: `/plan [task]` → Create atomic **GitHub Issues** (NEVER .md files)
-5. **Phase 5**: `/impl [issue-number]` → Implement specific GitHub issue based on mode
+5. **Phase 5**: `/impl [issue-number]` → Implement specific GitHub issue
 
 **💡 Enhanced Workflow with Claude Code Slash Commands:**
-- Use `/mode [manual|copilot]` to set execution mode
 - Commands processed by Claude Code with intelligent execution
 - Rich documentation and help built into each command
 - Comprehensive error handling and validation
 - All workflows maintain the same template-driven approach
 - Legacy `=` commands remain supported for backward compatibility
 
-### Implementation Workflow (MANDATORY)
+### Implementation Workflow (MANDATORY) - Backend API
 
 **Pre-Implementation Checklist**:
 
-1. **Staging Sync**: `git checkout staging && git pull origin staging`
-2. **Task Verification**: Confirm Task **GitHub Issue** `#[issue-number]` exists and is [TASK] type
-3. **Context Status**: Verify Context **GitHub Issue** is `[Ready for Planning]` or `[Implementation Ready]`
-4. **Environment Check**: `git status` - working directory must be clean
+1. **Environment Validation**: `/test-env` - Verify all external services are accessible
+2. **Staging Sync**: `git checkout staging && git pull origin staging`
+3. **Task Verification**: Confirm Task **GitHub Issue** `#[issue-number]` exists and is [TASK] type
+4. **Context Status**: Verify Context **GitHub Issue** is `[Ready for Planning]` or `[Implementation Ready]`
+5. **Environment Check**: `git status` - working directory must be clean
+6. **Backend Environment Check**: Confirm all required environment variables are set
 
 **Implementation Steps**:
 
 1. **Create Feature Branch**: `git checkout -b feature/task-[issue-number]-[description]`
 2. **Execute Implementation**: Follow task requirements, use TodoWrite for complex tasks
-3. **Build Validation**: `npm run build` (100% success - zero errors)
-4. **Lint Validation**: `npm run lint` (100% pass - zero warnings)
-5. **Format Check**: Prettier auto-formatting (consistent formatting)
-6. **Type Check**: `npm run type-check` (comprehensive type checking)
-7. **Run Tests**: `npm test` (if applicable)
-8. **Commit Changes**:
+3. **Build Validation**: `cargo build --release` (100% success - zero errors)
+4. **Lint Validation**: `cargo clippy -- -D warnings` (100% pass - zero warnings)
+5. **Format Check**: `cargo fmt -- --check` (consistent formatting)
+6. **Type Check**: `cargo check` (comprehensive type checking)
+7. **Run Tests**: `cargo test` (if applicable)
+8. **Backend Validation**: Environment & services connectivity verified
+9. **API Manual Testing**: Test new endpoints with real services
+10. **Commit Changes**:
 
    ```bash
    git add .
    git commit -m "feat: [feature description]
 
    - Address #[issue-number]: [task title]
-   - Build validation: 100% PASS (npm run build)
-   - Lint validation: 100% PASS (npm run lint)
-   - Format validation: 100% PASS (prettier)
+   - Test-first implemented: Tests written before code implementation
+   - Red-Green-Refactor cycle followed (Red → Green → Refactor)
+   - Build validation: 100% PASS (cargo build --release)
+   - Lint validation: 100% PASS (cargo clippy -- -D warnings)
+   - Format validation: 100% PASS (cargo fmt -- --check)
+   - Backend validation: Environment & services verified
+   - API endpoint: Manual testing passed with real services
 
    🤖 Generated with Claude Code
    Co-Authored-By: Claude <noreply@anthropic.com>"
    ```
 
-9. **Push Branch**: `git push -u origin feature/task-[issue-number]-[description]`
+11. **Push Branch**: `git push -u origin feature/task-[issue-number]-[description]`
 
 **Post-Implementation**:
 
-- **MANUAL Mode**: Claude implements and pushes to feature branch, user uses `/pr` to create PR
-- **COPILOT Mode**: GitHub Copilot implements and pushes to feature branch, user uses `/pr` to create PR
+- Claude implements and pushes to feature branch
+- User uses `/pr` to create pull request
 
 ---
 
@@ -554,7 +568,6 @@ cargo check            # Type checking without building
 
 - **Context Issues**: Complete PLANNING READINESS CHECKLIST ✅ (Always GitHub Issues)
 - **Task Issues**: 100% build/lint/test requirements mandatory (Always GitHub Issues)
-- **Mode Execution**: Follow mode-specific behavior exactly
 - **Template Consistency**: All issues follow template structures
 - **File Policy**: NEVER create local .md files for issues - ALWAYS use GitHub Issues
 
@@ -586,6 +599,95 @@ cargo check            # Type checking without building
 - **Data Security**: Row-Level Security policies for zero-trust access
 - **Audit Trail**: Complete logs for animal and activity management
 
+## 🔧 Backend API Workflow Guidance
+
+### Backend-Specific Agent Expertise
+
+**Environment Validation & Testing:**
+- Expert in testing external services connectivity (Upstash Redis, Supabase PostgreSQL, Gemini API)
+- Proficient with `/test-env` command for environment validation before development
+- Experience with real service integration vs mocked environments
+- Knowledge of environment variable management and validation
+
+**Backend Testing Strategy:**
+- Unit Tests for core business logic (agent pipeline, queue management)
+- Integration Tests with real external services
+- Service Integration Tests for Redis Streams, PostgreSQL, Gemini API
+- Performance testing for API response times (< 200ms targets)
+- Database schema validation and migration testing
+
+**API Development:**
+- RESTful API design and implementation with Axum framework
+- Error handling and graceful degradation for external service failures
+- Authentication/authorization with API keys
+- Request validation and response formatting
+- Rate limiting and security considerations
+
+**Queue Systems:**
+- Redis Streams operations with Upstash
+- Background worker processes and job processing
+- Retry logic, error recovery, and dead letter queues
+- Queue monitoring and management
+
+### Backend Environment Validation Workflow
+
+**Before Development:**
+1. **Run `/test-env`** - Verify all external services are accessible
+2. **Check Environment Variables** - DATABASE_URL, UPSTASH_REDIS_URL, GEMINI_API_KEY, API_KEY_DEFAULT
+3. **Validate Queue Configuration** - REDIS_STREAM_NAME, REDIS_CONSUMER_GROUP
+4. **Test Service Connectivity** - Real Upstash Redis, Supabase, Gemini API
+
+**During Development:**
+1. **Local Service Testing** - API server and background worker processes
+2. **Manual API Testing** - Use curl/httpie to test new endpoints
+3. **Integration Testing** - End-to-end workflow validation
+4. **Performance Monitoring** - Response time and throughput validation
+
+**Post-Implementation:**
+1. **Environment Validation** - `/test-env` command passes all tests
+2. **API Manual Testing** - New endpoints work with real services
+3. **Database Persistence** - Data is correctly stored/retrieved
+4. **Queue Operations** - Jobs are processed correctly with real Redis
+5. **External Service Integration** - Gemini API calls succeed
+
+### Real Service Testing vs Mock Environments
+
+**Why We Test with Real Services:**
+- Ensures production-like behavior and error conditions
+- Validates actual network latency and connection handling
+- Tests real authentication/authorization mechanisms
+- Identifies issues that don't appear with mocked services
+- Provides confidence in production deployment
+
+**Required External Services:**
+- **Upstash Redis** - Queue management and stream operations
+- **Supabase PostgreSQL** - Database operations and persistence
+- **Gemini API** - LLM integration and tarot reading generation
+- **Environment Variables** - Configuration and API key management
+
+### Backend Quality Standards
+
+**Code Quality:**
+- `cargo build --release` - Zero compilation errors
+- `cargo clippy -- -D warnings` - Zero clippy warnings
+- `cargo fmt -- --check` - Consistent code formatting
+- `cargo check` - Type safety validation
+- `cargo test` - Comprehensive test coverage
+
+**Operational Requirements:**
+- API response time < 200ms (p95)
+- Graceful error handling for external service failures
+- Proper logging and monitoring
+- Database transaction integrity
+- Queue processing reliability
+
+**Security Standards:**
+- API key authentication and validation
+- Input sanitization and validation
+- Rate limiting and abuse prevention
+- Secure handling of sensitive data
+- Environment variable protection
+
 ---
 
-_This document focuses on agent-critical information for efficient workflow execution and safe development practices._
+_This document focuses on agent-critical information for efficient backend API workflow execution and safe development practices with real external services._
