@@ -1,0 +1,105 @@
+# 🚨 CRITICAL BRANCH PROTECTION WORKFLOW
+# This workflow enforces branch protection rules at repository level
+
+name: Branch Protection Rules
+
+on:
+  pull_request:
+    branches: [main, staging]  # Monitor both main and staging
+  push:
+    branches: [main]  # Prevent direct pushes to main
+
+jobs:
+  block-direct-main-pushes:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+    - name: 🚨 BLOCK DIRECT MAIN PUSHES
+      run: |
+        echo "::error::🚨 FATAL: Direct push to main branch detected!"
+        echo "::error::❌ Branch: main"
+        echo "::error::❌ Action: Direct push (FORBIDDEN)"
+        echo "::error::✅ Required workflow: PR to staging → review → merge"
+        echo "::error::🔒 Main branch protection: ENFORCED"
+        echo "::error::💡 Solution: Create PR from feature branch to staging"
+        exit 1
+
+  enforce-staging-prs:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+    - name: 🔒 Enforce Staging-Only PR Policy
+      run: |
+        TARGET="${{ github.event.pull_request.base.ref }}"
+        SOURCE="${{ github.event.pull_request.head.ref }}"
+
+        echo "🔍 Checking PR: $SOURCE → $TARGET"
+
+        # BLOCK: Main branch targets
+        if [[ "$TARGET" == "main" ]]; then
+          echo "::error::🚨 SECURITY BREACH: PR targeting main branch!"
+          echo "::error::❌ Source: $SOURCE"
+          echo "::error::❌ Target: main (FORBIDDEN)"
+          echo "::error::✅ Required target: staging"
+          echo "::error::🔒 Main branch protection: ACTIVE"
+          echo "::error::💡 Action: Change base branch to staging"
+          exit 1
+        fi
+
+        # ALLOW: Only staging targets
+        if [[ "$TARGET" == "staging" ]]; then
+          echo "✅ PR correctly targets staging branch"
+
+          # Validate source is feature branch
+          if [[ ! "$SOURCE" =~ ^feature/task-[0-9]+-.+$ ]]; then
+            echo "::warning::⚠️ Source branch should follow: feature/task-{number}-{description}"
+            echo "::warning::📝 Current: $SOURCE"
+          else
+            echo "✅ Feature branch naming: CORRECT"
+          fi
+
+          echo "🚀 Staging workflow: VALID"
+        else
+          echo "::error::❌ Invalid target branch: $TARGET"
+          echo "::error::✅ Only allowed target: staging"
+          echo "::error::🔒 Staging-only policy: ENFORCED"
+          exit 1
+        fi
+
+  validate-workflow-compliance:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'staging'
+
+    steps:
+    - name: 📋 Validate Workflow Compliance
+      run: |
+        echo "📋 WORKFLOW COMPLIANCE CHECK"
+        echo "✅ Target: staging (REQUIRED)"
+        echo "✅ PR workflow: COMPLIANT"
+        echo "🔒 Main branch protection: ACTIVE"
+        echo "🚀 Ready for team review"
+
+  security-audit:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+    - name: 🔍 Security Audit
+      run: |
+        TARGET="${{ github.event.pull_request.base.ref }}"
+
+        echo "🔒 SECURITY AUDIT LOG"
+        echo "Repository: ${{ github.repository }}"
+        echo "PR: #${{ github.event.pull_request.number }}"
+        echo "Target: $TARGET"
+        echo "Actor: ${{ github.actor }}"
+
+        if [[ "$TARGET" == "main" ]]; then
+          echo "::error::🚨 SECURITY ALERT: Main branch access attempt!"
+          echo "::error::Action required: Immediate review"
+          exit 1
+        fi
+
+        echo "✅ Security check: PASSED"

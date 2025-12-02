@@ -1,0 +1,63 @@
+# 🚨 CRITICAL: PROTECT MAIN BRANCH
+# This workflow enforces that NO PRs can target main branch
+# PRs are ONLY allowed to target staging branch
+
+name: Main Branch Protection
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  block-main-target:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.base.ref == 'main'
+
+    steps:
+    - name: 🚨 BLOCK MAIN BRANCH TARGET
+      run: |
+        echo "::error::🚨 CRITICAL ERROR: PRs CANNOT target main branch!"
+        echo "::error::✅ REQUIRED: PR must target 'staging' branch"
+        echo "::error::❌ FORBIDDEN: Targeting 'main' branch is not allowed"
+        echo "::error::🔒 SAFETY: Main branch protection is enforced"
+        echo "::error::💡 ACTION: Change base branch to 'staging'"
+        exit 1
+
+  validate-staging-target:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.base.ref != 'main'
+
+    steps:
+    - name: ✅ Validate Staging Target
+      run: |
+        if [[ "${{ github.event.pull_request.base.ref }}" != "staging" ]]; then
+          echo "::error::❌ Invalid target branch: ${{ github.event.pull_request.base.ref }}"
+          echo "::error::✅ Required target: staging"
+          echo "::error::🔒 Only staging branch is allowed for PRs"
+          exit 1
+        fi
+
+        echo "✅ PR correctly targets staging branch"
+        echo "🔒 Main branch protection: ACTIVE"
+        echo "🚀 Staging workflow: VALID"
+
+  enforce-branch-naming:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.base.ref == 'staging'
+
+    steps:
+    - name: 🔍 Validate Feature Branch Naming
+      run: |
+        BRANCH="${{ github.event.pull_request.head.ref }}"
+        echo "🔍 Checking branch: $BRANCH"
+
+        # Must follow pattern: feature/task-{number}-{description}
+        if [[ ! "$BRANCH" =~ ^feature/task-[0-9]+-.+$ ]]; then
+          echo "::error::❌ Invalid branch naming: $BRANCH"
+          echo "::error::✅ Required format: feature/task-{number}-{description}"
+          echo "::error::📝 Examples: feature/task-123-user-auth, feature/task-456-api-endpoints"
+          exit 1
+        fi
+
+        echo "✅ Branch naming validation: PASSED"
+        echo "🚀 Feature branch pattern: CORRECT"

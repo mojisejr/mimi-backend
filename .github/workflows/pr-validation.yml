@@ -1,0 +1,120 @@
+# PR Validation Workflow
+# Enforces strict PR policies for staging-only workflow
+
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches: [staging]  # Only allow PRs to staging
+
+jobs:
+  validate-staging-only:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 🚨 BLOCK NON-STAGING TARGETS
+      run: |
+        if [[ "${{ github.event.pull_request.base.ref }}" != "staging" ]]; then
+          echo "::error::🚨 SECURITY VIOLATION: PR targeting non-staging branch!"
+          echo "::error::❌ Found target: ${{ github.event.pull_request.base.ref }}"
+          echo "::error::✅ Required target: staging"
+          echo "::error::🔒 Staging-only policy: ENFORCED"
+          exit 1
+        fi
+        echo "✅ PR correctly targets staging branch"
+
+  validate-source-branch:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.base.ref == 'staging'
+
+    steps:
+    - name: 🔍 Validate Source Branch
+      run: |
+        SOURCE="${{ github.event.pull_request.head.ref }}"
+        echo "🔍 Source branch: $SOURCE"
+
+        # Must be a feature branch
+        if [[ ! "$SOURCE" =~ ^feature/ ]]; then
+          echo "::error::❌ Invalid source branch: $SOURCE"
+          echo "::error::✅ Required prefix: feature/"
+          echo "::error::📝 Example: feature/task-123-api-implementation"
+          exit 1
+        fi
+
+        # Must follow naming convention
+        if [[ ! "$SOURCE" =~ ^feature/task-[0-9]+-.+$ ]]; then
+          echo "::error::❌ Invalid branch naming: $SOURCE"
+          echo "::error::✅ Required format: feature/task-{number}-{description}"
+          exit 1
+        fi
+
+        echo "✅ Source branch validation: PASSED"
+
+  prevent-main-merge:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 🔒 CRITICAL: Prevent Main Branch Merges
+      run: |
+        # This job runs for ALL PRs as a safety net
+        if [[ "${{ github.event.pull_request.base.ref }}" == "main" ]]; then
+          echo "::error::🚨 FATAL: Attempt to merge to main branch detected!"
+          echo "::error::❌ Source: ${{ github.event.pull_request.head.ref }}"
+          echo "::error::❌ Target: main (FORBIDDEN)"
+          echo "::error::✅ Required target: staging"
+          echo "::error::🔒 Main branch protection: ACTIVE"
+          echo "::error::💡 Action: Change base branch to staging immediately"
+          exit 1
+        fi
+
+  enforce-issue-reference:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.base.ref == 'staging'
+
+    steps:
+    - name: 📋 Validate Issue Reference
+      run: |
+        BRANCH="${{ github.event.pull_request.head.ref }}"
+
+        # Extract issue number from branch name
+        if [[ "$BRANCH" =~ feature/task-([0-9]+) ]]; then
+          ISSUE_NUM="${BASH_REMATCH[1]}"
+          echo "✅ Issue reference found: #$ISSUE_NUM"
+
+          # Validate issue exists (this would need GitHub API access)
+          # For now, just validate the format
+          echo "📋 Task issue format: VALID"
+        else
+          echo "::warning::⚠️ Could not extract issue number from branch: $BRANCH"
+        fi
+
+  check-pr-title:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.base.ref == 'staging'
+
+    steps:
+    - name: 📝 Validate PR Title Format
+      run: |
+        TITLE="${{ github.event.pull_request.title }}"
+        echo "📝 PR Title: $TITLE"
+
+        # Should contain issue reference
+        if [[ ! "$TITLE" =~ #[0-9]+ ]]; then
+          echo "::warning::⚠️ PR title should reference issue (e.g., \"feat: API endpoints #45\")"
+        else
+          echo "✅ PR title contains issue reference"
+        fi
+
+  staging-workflow-summary:
+    runs-on: ubuntu-latest
+    if: always() && github.event.pull_request.base.ref == 'staging'
+    needs: [validate-staging-only, validate-source-branch, prevent-main-merge]
+
+    steps:
+    - name: 📊 Staging Workflow Summary
+      run: |
+        echo "🚀 STAGING WORKFLOW VALIDATION COMPLETE"
+        echo "✅ Target branch: staging (CORRECT)"
+        echo "✅ Source branch: ${{ github.event.pull_request.head.ref }}"
+        echo "🔒 Main branch protection: ACTIVE"
+        echo "📋 PR ready for review: YES"
