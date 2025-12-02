@@ -5,7 +5,7 @@
 
 use axum::{
     extract::{Request, State},
-    http::{StatusCode, HeaderMap},
+    http::{HeaderMap, StatusCode},
     middleware::Next,
     response::{IntoResponse, Response},
 };
@@ -45,7 +45,10 @@ pub struct RateLimiterState {
 impl RateLimiterState {
     /// Create a new rate limiter state
     pub fn new(redis_client: redis::Client, config: RateLimiterConfig) -> Self {
-        Self { redis_client, config }
+        Self {
+            redis_client,
+            config,
+        }
     }
 
     /// Create with default configuration
@@ -124,7 +127,10 @@ pub async fn rate_limit_middleware(
         }
         Err(e) => {
             // Redis error - allow request to proceed (fail open)
-            eprintln!("Rate limiter Redis error: {}. Allowing request to proceed.", e);
+            eprintln!(
+                "Rate limiter Redis error: {}. Allowing request to proceed.",
+                e
+            );
             Ok(next.run(request).await)
         }
     }

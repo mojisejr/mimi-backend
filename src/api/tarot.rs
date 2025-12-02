@@ -2,14 +2,14 @@
 //!
 //! Endpoints for submitting tarot reading requests and retrieving results.
 
+use crate::{
+    models::{ErrorResponse, HealthResponse, TarotRequest, TarotResponse},
+    queue::types::JobPayload,
+};
 use axum::{
     extract::State,
     http::{HeaderMap, StatusCode},
     response::Json,
-};
-use crate::{
-    models::{TarotRequest, TarotResponse, ErrorResponse, HealthResponse},
-    queue::types::JobPayload,
 };
 use redis::AsyncCommands;
 use serde_json::json;
@@ -60,7 +60,11 @@ pub async fn request_reading(
     let job_id = Uuid::new_v4();
     let job_payload = JobPayload {
         job_id: job_id.to_string(),
-        user_id: request.user_id.as_ref().and_then(|u| Uuid::parse_str(u).ok()).unwrap_or_else(Uuid::new_v4),
+        user_id: request
+            .user_id
+            .as_ref()
+            .and_then(|u| Uuid::parse_str(u).ok())
+            .unwrap_or_else(Uuid::new_v4),
         question: request.get_trimmed_question(),
         card_count: 3, // Default to 3 cards (system will randomize actual count)
         schema_version: "1".to_string(),
@@ -160,16 +164,16 @@ async fn submit_to_queue(
         Err(e) => {
             // Convert Box<dyn Error> to Box<dyn Error + Send + Sync>
             let error_msg = format!("Queue enqueue error: {}", e);
-            Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, error_msg)) as Box<dyn std::error::Error + Send + Sync>)
-        },
+            Err(
+                Box::new(std::io::Error::new(std::io::ErrorKind::Other, error_msg))
+                    as Box<dyn std::error::Error + Send + Sync>,
+            )
+        }
     }
 }
 
 /// Get job result from Redis cache
-async fn get_job_result(
-    redis_client: &redis::Client,
-    job_id: &Uuid,
-) -> Option<serde_json::Value> {
+async fn get_job_result(redis_client: &redis::Client, job_id: &Uuid) -> Option<serde_json::Value> {
     let mut conn = redis_client.get_multiplexed_async_connection().await.ok()?;
 
     // Look for result in Redis with key pattern: "job_result:{job_id}"

@@ -3,9 +3,7 @@
 //! Test-Driven Development: Tests written BEFORE implementation.
 //! These tests should FAIL initially (Red Phase).
 
-use reqwest;
 use serde_json::{json, Value};
-use std::time::Duration;
 use uuid::Uuid;
 
 /// Test for valid question length (5-100 characters)
@@ -28,7 +26,11 @@ async fn test_question_validation_valid_length() {
     // This test will FAIL in Red Phase (expected)
     match response {
         Ok(resp) => {
-            assert_eq!(resp.status(), 201, "Minimum valid question should be accepted");
+            assert_eq!(
+                resp.status(),
+                201,
+                "Minimum valid question should be accepted"
+            );
         }
         Err(e) => {
             // Expected in Red Phase - API not implemented yet
@@ -49,7 +51,11 @@ async fn test_question_validation_valid_length() {
 
     match response {
         Ok(resp) => {
-            assert_eq!(resp.status(), 201, "Maximum valid question should be accepted");
+            assert_eq!(
+                resp.status(),
+                201,
+                "Maximum valid question should be accepted"
+            );
         }
         Err(_) => {
             // Expected in Red Phase
@@ -78,7 +84,10 @@ async fn test_question_validation_too_short() {
             assert_eq!(resp.status(), 400, "Question too short should return 400");
 
             let body: Value = resp.json().await.unwrap();
-            assert!(body["error"].as_str().unwrap().contains("Question must be between 5 and 100 characters"));
+            assert!(body["error"]
+                .as_str()
+                .unwrap()
+                .contains("Question must be between 5 and 100 characters"));
         }
         Err(_) => {
             // Expected in Red Phase
@@ -107,7 +116,10 @@ async fn test_question_validation_too_long() {
             assert_eq!(resp.status(), 400, "Question too long should return 400");
 
             let body: Value = resp.json().await.unwrap();
-            assert!(body["error"].as_str().unwrap().contains("Question must be between 5 and 100 characters"));
+            assert!(body["error"]
+                .as_str()
+                .unwrap()
+                .contains("Question must be between 5 and 100 characters"));
         }
         Err(_) => {
             // Expected in Red Phase
@@ -151,7 +163,10 @@ async fn test_rate_limiting_enforcement() {
             assert_eq!(resp.status(), 429, "Second request should be rate limited");
 
             let body: Value = resp.json().await.unwrap();
-            assert!(body["error"].as_str().unwrap().contains("Rate limit exceeded"));
+            assert!(body["error"]
+                .as_str()
+                .unwrap()
+                .contains("Rate limit exceeded"));
         }
         Err(_) => {
             // Expected in Red Phase
@@ -186,7 +201,10 @@ async fn test_api_queue_submission() {
 
             // Verify job_id is valid UUID
             let job_id_str = body["job_id"].as_str().unwrap();
-            assert!(Uuid::parse_str(job_id_str).is_ok(), "job_id should be valid UUID");
+            assert!(
+                Uuid::parse_str(job_id_str).is_ok(),
+                "job_id should be valid UUID"
+            );
 
             // TODO: In Green Phase, verify job is actually in Redis queue
             // For now, just verify response format
@@ -213,10 +231,17 @@ async fn test_missing_question_field() {
 
     match response {
         Ok(resp) => {
-            assert_eq!(resp.status(), 400, "Missing question field should return 400");
+            assert_eq!(
+                resp.status(),
+                400,
+                "Missing question field should return 400"
+            );
 
             let body: Value = resp.json().await.unwrap();
-            assert!(body["error"].as_str().unwrap().contains("Missing required field"));
+            assert!(body["error"]
+                .as_str()
+                .unwrap()
+                .contains("Missing required field"));
         }
         Err(_) => {
             // Expected in Red Phase
@@ -243,7 +268,10 @@ async fn test_empty_question_field() {
             assert_eq!(resp.status(), 400, "Empty question should return 400");
 
             let body: Value = resp.json().await.unwrap();
-            assert!(body["error"].as_str().unwrap().contains("Question cannot be empty"));
+            assert!(body["error"]
+                .as_str()
+                .unwrap()
+                .contains("Question cannot be empty"));
         }
         Err(_) => {
             // Expected in Red Phase

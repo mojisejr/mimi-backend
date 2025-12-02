@@ -4,19 +4,20 @@
 //! Built with Axum web framework.
 
 use axum::{
-    routing::{get, post},
-    Router, middleware,
     http::{HeaderValue, Method},
+    middleware,
+    routing::{get, post},
+    Router,
 };
+use dotenvy::dotenv;
 use mimivibe_backend::{
-    api::tarot::{request_reading, get_reading, health_check, ApiState},
-    middleware::rate_limiter::{rate_limit_middleware, RateLimiterState, RateLimiterConfig},
-    queue::upstash_queue::UpstashQueue,
+    api::tarot::{get_reading, health_check, request_reading, ApiState},
     config::env::EnvironmentConfig,
+    middleware::rate_limiter::{rate_limit_middleware, RateLimiterConfig, RateLimiterState},
+    queue::upstash_queue::UpstashQueue,
 };
 use std::sync::Arc;
-use tower_http::cors::{CorsLayer, Any};
-use dotenvy::dotenv;
+use tower_http::cors::{Any, CorsLayer};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -71,25 +72,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .route("/api/v1/health", get(health_check))
         .route("/api/v1/tarots/read", post(request_reading))
         .route("/api/v1/tarots/:job_id", get(get_reading))
-
         // Add rate limiting middleware to tarot routes
         .layer(middleware::from_fn_with_state(
             rate_limiter_state.clone(),
             rate_limit_middleware,
         ))
-
         // Add CORS middleware
         .layer(
             CorsLayer::new()
                 .allow_origin(Any)
                 .allow_methods([Method::GET, Method::POST])
-                .allow_headers([axum::http::header::CONTENT_TYPE, axum::http::header::AUTHORIZATION])
+                .allow_headers([
+                    axum::http::header::CONTENT_TYPE,
+                    axum::http::header::AUTHORIZATION,
+                ])
                 .allow_credentials(false),
         )
-
         // Add request ID middleware for tracing
         .layer(middleware::from_fn(request_id_middleware))
-
         // Provide shared state
         .with_state(api_state);
 
@@ -125,10 +125,9 @@ async fn request_id_middleware(
 
     // Add request ID to response headers
     let mut response = next.run(request).await;
-    response.headers_mut().insert(
-        "x-request-id",
-        HeaderValue::from_str(&request_id).unwrap(),
-    );
+    response
+        .headers_mut()
+        .insert("x-request-id", HeaderValue::from_str(&request_id).unwrap());
 
     response
 }

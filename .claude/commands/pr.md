@@ -1,6 +1,8 @@
 # pr
 
-Pull Request Creation - Create Pull Request from feature branch to staging.
+Pull Request Creation - Create Pull Request from feature branch to **STAGING ONLY**.
+
+🚨 **CRITICAL SAFETY**: This command **NEVER** creates PRs to main branch. Main branch merging is **FORBIDDEN** and **BLOCKED** by system validation.
 
 ## Usage
 
@@ -31,7 +33,13 @@ Pull Request Creation - Create Pull Request from feature branch to staging.
    - Confirm branch is pushed to remote
    - Verify staging branch exists
 
-3. **Extract Issue Information**:
+3. **🚨 CRITICAL: Staging Branch Enforcement**:
+   - Confirm main branch protection is active
+   - Verify staging branch exists and is valid target
+   - Block any attempt to target main branch
+   - Validate PR will NOT merge to main under any circumstances
+
+4. **Extract Issue Information**:
    - Parse issue number from branch name
    - Validate issue exists and is a task
    - Get issue title and description
@@ -62,12 +70,24 @@ cargo test                     # Test validation (if applicable)
 
 3. **Create Pull Request**:
    ```bash
+   # 🚨 CRITICAL: ALWAYS target staging branch - NEVER main
    gh pr create \
      --title "{title}" \
      --base staging \
      --head "{feature-branch}" \
      --body "{body}" \
      --label "auto-pr"
+   ```
+
+4. **🚨 STAGING BRANCH ENFORCEMENT**:
+   ```bash
+   # Verify PR targets staging branch (NEVER main)
+   gh pr view --json baseRefName | jq -r '.baseRefName' | grep -q "^staging$" || {
+     echo "🚨 ERROR: PR must target staging branch ONLY!"
+     echo "❌ Found target: $(gh pr view --json baseRefName | jq -r '.baseRefName')"
+     echo "✅ Required target: staging"
+     exit 1
+   }
    ```
 
 ## PR Body Template
@@ -118,13 +138,17 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 - **Validation failures**: Stop and report specific failures
 - **Issue not found**: Validate issue exists before PR creation
 - **Staging branch missing**: Error with available branches
+- **🚨 CRITICAL**: Attempt to merge to main branch - BLOCKED with error message
+- **🚨 SECURITY**: Any main branch reference - IMMEDIATE REJECTION with warning
 
 ## Integration
 
 - **Before**: Use `/impl [issue-number]` to complete implementation
 - **After**: Wait for team review and approval
-- **Target**: Always creates PR to `staging` branch (never `main`)
+- **🚨 TARGET**: STRICTLY `staging` branch ONLY - **NEVER** `main`
+- **🚨 BLOCKED**: Any attempt to target main branch is REJECTED
 - **Context**: PR resolves specific GitHub issue
+- **Safety**: System enforces staging-only workflow with validation checks
 
 ## Branch Naming Requirements
 
@@ -140,12 +164,15 @@ Examples:
 
 ## Important Notes
 
-- **ALWAYS** creates PR to staging branch (never to main)
+- **🚨 CRITICAL**: ALWAYS creates PR to staging branch - NEVER to main
+- **🚨 FORBIDDEN**: Main branch merging is BLOCKED by system validation
+- **🚨 SECURITY**: Any attempt to target main branch will be REJECTED
 - **NEVER** merge PRs yourself - wait for team approval
 - **100% validation** required before PR creation
 - Feature branch must be pushed to remote
 - Working directory must be clean
 - PR must resolve a specific task issue
+- **STAGING ONLY**: PRs are exclusively for staging branch review and testing
 
 ## Files
 

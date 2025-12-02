@@ -66,7 +66,6 @@ impl TarotRequest {
         self.question.trim().to_string()
     }
 
-  
     /// Get user identifier for rate limiting
     pub fn get_rate_limit_key(&self, fallback_ip: Option<&str>) -> String {
         if let Some(user_id) = &self.user_id {
@@ -105,7 +104,8 @@ impl TarotResponse {
         Self {
             job_id,
             status: "queued".to_string(),
-            message: "Tarot reading request submitted successfully. Your job is now in the queue.".to_string(),
+            message: "Tarot reading request submitted successfully. Your job is now in the queue."
+                .to_string(),
             created_at: chrono::Utc::now().to_rfc3339(),
             estimated_wait_seconds: Some(60), // 1 minute estimate
         }
@@ -281,7 +281,6 @@ mod tests {
         assert_eq!(request.get_trimmed_question(), "ควรจะทำอะไรดีครับ");
     }
 
-    
     #[test]
     fn test_get_rate_limit_key_with_user_id() {
         let request = TarotRequest {
@@ -299,7 +298,10 @@ mod tests {
             user_id: None,
         };
 
-        assert_eq!(request.get_rate_limit_key(Some("192.168.1.1")), "rate_limit:ip:192.168.1.1");
+        assert_eq!(
+            request.get_rate_limit_key(Some("192.168.1.1")),
+            "rate_limit:ip:192.168.1.1"
+        );
     }
 
     #[test]
