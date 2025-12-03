@@ -13,6 +13,7 @@ pub mod models;
 pub mod monitor;
 pub mod queue;
 pub mod repository;
+pub mod services;
 pub mod utils;
 pub mod worker;
 

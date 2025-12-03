@@ -4,5 +4,7 @@
 //! asynchronous job processing with retry logic and error handling.
 
 pub mod retry;
+pub mod tarot_worker;
 
 pub use retry::{RetryConfig, RetryPolicy};
+pub use tarot_worker::{TarotWorker, WorkerError, WorkerStats};
