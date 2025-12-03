@@ -5,6 +5,7 @@
 
 use crate::{queue::Queue, repository::JobRepository};
 use async_trait::async_trait;
+use serde_json::json;
 use sqlx::PgPool;
 use std::error::Error;
 use std::sync::Arc;
