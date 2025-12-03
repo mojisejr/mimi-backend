@@ -27,9 +27,11 @@ fn test_job_model_validation() {
     });
 
     let create_input = CreateJobInput {
+        job_type: Some("tarot_reading".to_string()),
         payload: payload.clone(),
         dedupe_key: Some("unique-key-123".to_string()),
         max_attempts: Some(5),
+        prompt_version: Some("v2025-11-20-a".to_string()),
     };
 
     // Validate input structure
@@ -141,9 +143,11 @@ fn test_json_payload_handling() {
     });
 
     let create_input = CreateJobInput {
+        job_type: Some("tarot_reading".to_string()),
         payload: complex_payload.clone(),
         dedupe_key: None,
         max_attempts: Some(3),
+        prompt_version: Some("v2025-11-20-a".to_string()),
     };
 
     // Test payload structure
@@ -174,22 +178,28 @@ fn test_json_payload_handling() {
 fn test_edge_cases() {
     // Test empty payload
     let empty_input = CreateJobInput {
+        job_type: Some("tarot_reading".to_string()),
         payload: json!({}),
         dedupe_key: None,
         max_attempts: Some(1),
+        prompt_version: Some("v2025-11-20-a".to_string()),
     };
 
     // Test max attempts validation (should handle edge cases)
     let zero_attempts = CreateJobInput {
+        job_type: Some("tarot_reading".to_string()),
         payload: json!({"test": "zero"}),
         dedupe_key: None,
         max_attempts: Some(0),
+        prompt_version: Some("v2025-11-20-a".to_string()),
     };
 
     let large_attempts = CreateJobInput {
+        job_type: Some("tarot_reading".to_string()),
         payload: json!({"test": "large"}),
         dedupe_key: None,
         max_attempts: Some(1000),
+        prompt_version: Some("v2025-11-20-a".to_string()),
     };
 
     // All these should be valid inputs (validation happens at database layer)

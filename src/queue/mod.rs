@@ -7,6 +7,7 @@ pub mod inmemory_queue;
 pub mod pool;
 pub mod redis_dedupe;
 pub mod redis_queue;
+pub mod tarot_queue;
 pub mod types;
 pub mod upstash_queue;
 
@@ -14,6 +15,7 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 
+pub use tarot_queue::{PendingCount, ReadingResult, ReadingSubmissionResult, TarotQueue};
 pub use types::{JobMetadata, JobPayload, JobType};
 
 /// Job status enumeration
