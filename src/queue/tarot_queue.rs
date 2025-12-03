@@ -5,7 +5,6 @@
 
 use crate::{queue::Queue, repository::JobRepository};
 use async_trait::async_trait;
-use serde_json::json;
 use sqlx::PgPool;
 use std::error::Error;
 use std::sync::Arc;
@@ -323,6 +322,7 @@ impl TarotQueueTrait for TarotQueue {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::json;
     use std::sync::Arc;
 
     #[tokio::test]
