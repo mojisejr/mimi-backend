@@ -524,13 +524,13 @@ mod tests {
     }
 
     // Tests temporarily disabled due to import conflicts
-// Will be re-enabled when full schema is implemented
-/*
-#[test]
-fn test_convert_db_job_to_queue_payload() {
-    // This test would need the repository instance
-    // For now, we'll just validate the structure
-    panic!("Repository instance needed for conversion testing");
-}
-*/
+    // Will be re-enabled when full schema is implemented
+    /*
+    #[test]
+    fn test_convert_db_job_to_queue_payload() {
+        // This test would need the repository instance
+        // For now, we'll just validate the structure
+        panic!("Repository instance needed for conversion testing");
+    }
+    */
 }

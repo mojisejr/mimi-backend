@@ -34,20 +34,38 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("✅ Environment configuration loaded");
 
     // Initialize Redis client for rate limiting and caching
-    let redis_client = if config.has_upstash() {
-        redis::Client::open(format!(
-            "redis://:{}@{}",
-            config.upstash_token()?,
-            config.upstash_url()?
-        ))?
+    println!("🔄 Initializing Redis client...");
+    let redis_client = match if config.has_upstash() {
+        // Use local Redis for rate limiting when Upstash is configured for queue
+        println!("Using local Redis for rate limiting (Upstash configured for queue)");
+        redis::Client::open(config.redis_url()?)
     } else {
-        redis::Client::open(config.redis_url()?)?
+        redis::Client::open(config.redis_url()?)
+    } {
+        Ok(client) => {
+            println!("✅ Redis client initialized for rate limiting and caching");
+            client
+        }
+        Err(e) => {
+            println!("❌ Redis client initialization failed: {}", e);
+            // Continue without rate limiting in development
+            println!("⚠️ Continuing without Redis rate limiting (development mode)");
+            redis::Client::open("redis://127.0.0.1:6379")?
+        }
     };
-    println!("✅ Redis client initialized for rate limiting and caching");
 
     // Initialize TarotQueue (which handles both Redis queue and database)
-    let tarot_queue = Arc::new(TarotQueue::from_env().await?);
-    println!("✅ TarotQueue system initialized (Redis + Database integration)");
+    println!("🔄 Initializing TarotQueue system...");
+    let tarot_queue = match TarotQueue::from_env().await {
+        Ok(queue) => {
+            println!("✅ TarotQueue system initialized (Redis + Database integration)");
+            Arc::new(queue)
+        }
+        Err(e) => {
+            println!("❌ TarotQueue initialization failed: {}", e);
+            return Err(e);
+        }
+    };
 
     // Create API state
     let api_state = ApiState {

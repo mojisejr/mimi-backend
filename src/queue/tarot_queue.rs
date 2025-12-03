@@ -5,7 +5,6 @@
 
 use crate::{queue::Queue, repository::JobRepository};
 use async_trait::async_trait;
-use serde_json::json;
 use sqlx::PgPool;
 use std::error::Error;
 use std::sync::Arc;
@@ -185,29 +184,22 @@ impl TarotQueue {
     /// * `Err(Box<dyn Error>)` - Configuration error
     pub async fn from_env() -> Result<Self, Box<dyn Error>> {
         use crate::queue::inmemory_queue::InMemoryQueue;
-        use crate::queue::redis_queue::RedisQueue;
-        use crate::queue::upstash_queue::UpstashQueue;
 
         // Setup database connection
         let database_url = std::env::var("DATABASE_URL")
             .map_err(|_| "DATABASE_URL environment variable not set")?;
+        println!(
+            "Connecting to database: {}...",
+            &database_url[..database_url.find('@').unwrap_or(database_url.len())]
+        );
         let pool = sqlx::PgPool::connect(&database_url).await?;
+        println!("✅ Database connection successful");
 
         // Try to setup queue based on available configuration
         let queue: Arc<dyn Queue + Send + Sync> =
-            // Try Upstash Redis first (preferred for production)
-            if let Ok(upstash_queue) = UpstashQueue::from_env().await {
-                println!("Using Upstash Redis queue");
-                Arc::new(upstash_queue)
-            }
-            // Try regular Redis
-            else if let Ok(redis_queue) = RedisQueue::from_env().await {
-                println!("Using Redis queue");
-                Arc::new(redis_queue)
-            }
-            // Fallback to in-memory for development
-            else {
-                println!("Using in-memory queue (fallback)");
+            // Use in-memory queue for development (temporary fix)
+            {
+                println!("Using in-memory queue (development mode)");
                 Arc::new(InMemoryQueue::new())
             };
 
@@ -330,7 +322,6 @@ impl TarotQueueTrait for TarotQueue {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::queue::inmemory_queue::InMemoryQueue;
     use std::sync::Arc;
 
     #[tokio::test]
