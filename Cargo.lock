@@ -1079,6 +1079,7 @@ dependencies = [
  "base64",
  "chrono",
  "dotenvy",
+ "futures",
  "hex",
  "rand",
  "redis",

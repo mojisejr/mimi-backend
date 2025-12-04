@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use crate::utils::card_picker;
+    use mimivibe_backend::utils::card_picker;
 
     #[test]
     fn returns_3_or_5() {
