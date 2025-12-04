@@ -60,7 +60,10 @@ impl QuestionFilter {
     }
 
     /// Create a QuestionFilter with custom length limits
-    pub async fn with_limits(min_length: usize, max_length: usize) -> Result<Self, QuestionFilterError> {
+    pub async fn with_limits(
+        min_length: usize,
+        max_length: usize,
+    ) -> Result<Self, QuestionFilterError> {
         if min_length >= max_length {
             return Err(QuestionFilterError::ValidationFailed {
                 reason: "Minimum length cannot be greater than or equal to maximum length"
@@ -82,7 +85,10 @@ impl QuestionFilter {
     }
 
     /// Validate a user question with new JSON response format
-    pub async fn validate_question(&self, question: &str) -> Result<crate::models::question_filter::QuestionFilterResponse, QuestionFilterError> {
+    pub async fn validate_question(
+        &self,
+        question: &str,
+    ) -> Result<crate::models::question_filter::QuestionFilterResponse, QuestionFilterError> {
         // Basic length validation first
         self.validate_length(question)?;
 
@@ -120,7 +126,7 @@ impl QuestionFilter {
         Ok(())
     }
 
-      /// Render the filter prompt with the given question
+    /// Render the filter prompt with the given question
     async fn render_filter_prompt(&self, question: &str) -> Result<String, QuestionFilterError> {
         let context = crate::models::prompt::PromptRenderContext::new(question.to_string());
         let template = self.prompt_manager.load_prompt("question_filter")?;
@@ -130,7 +136,10 @@ impl QuestionFilter {
     }
 
     /// AI-based content validation using Gemini with structured JSON response
-    async fn validate_content_with_ai(&self, question: &str) -> Result<crate::models::question_filter::QuestionFilterResponse, QuestionFilterError> {
+    async fn validate_content_with_ai(
+        &self,
+        question: &str,
+    ) -> Result<crate::models::question_filter::QuestionFilterResponse, QuestionFilterError> {
         // Load and render Thai prompt template
         let formatted_prompt = self.render_filter_prompt(question).await?;
 
@@ -202,8 +211,8 @@ pub async fn filter_question(question: &str) -> Result<bool, String> {
 mod tests {
     use super::*;
     use crate::config::env::{Environment, EnvironmentConfig, QueuePoolConfig};
-    use crate::models::question_filter::QuestionFilterResponse;
     use crate::models::prompt::PromptRenderContext;
+    use crate::models::question_filter::QuestionFilterResponse;
     use crate::utils::prompt_manager::PromptManager;
     use serde_json;
 
@@ -241,7 +250,10 @@ mod tests {
         assert!(result.is_ok(), "Thai prompt should load successfully");
 
         let decoded_prompt = result.unwrap();
-        assert!(!decoded_prompt.is_empty(), "Decoded prompt should not be empty");
+        assert!(
+            !decoded_prompt.is_empty(),
+            "Decoded prompt should not be empty"
+        );
         assert!(
             decoded_prompt.contains("แม่หมอมีมี่"),
             "Decoded prompt should contain Thai persona name"
@@ -267,10 +279,7 @@ mod tests {
 
         let response = result.unwrap();
         assert!(response.is_valid, "Response should be marked as valid");
-        assert_eq!(
-            response.reason,
-            "คำถามนี้เหมาะสมสำหรับการทำนายดวงชะตาค่ะ"
-        );
+        assert_eq!(response.reason, "คำถามนี้เหมาะสมสำหรับการทำนายดวงชะตาค่ะ");
     }
 
     #[test]
@@ -322,27 +331,34 @@ mod tests {
     #[test]
     fn test_validate_question_approved_response() {
         // Test isValid:true response should pass validation
-        let response = QuestionFilterResponse::valid(
-            "คำถามของคุณเหมาะสมสำหรับการทำนายดวงชะตาค่ะ".to_string(),
-        );
+        let response =
+            QuestionFilterResponse::valid("คำถามของคุณเหมาะสมสำหรับการทำนายดวงชะตาค่ะ".to_string());
 
         let validation_result = response.validate();
 
-        assert!(validation_result.is_ok(), "Valid response should pass validation");
-        assert!(response.contains_thai_chars(), "Valid response should contain Thai characters");
+        assert!(
+            validation_result.is_ok(),
+            "Valid response should pass validation"
+        );
+        assert!(
+            response.contains_thai_chars(),
+            "Valid response should contain Thai characters"
+        );
     }
 
     #[test]
     fn test_validate_question_rejected_response() {
         // Test isValid:false response should fail with reason
-        let response = QuestionFilterResponse::invalid(
-            "คำถามนี้ไม่เหมาะสมเนื่องจากมีเนื้อหาที่เป็นอันตราย".to_string(),
-        );
+        let response =
+            QuestionFilterResponse::invalid("คำถามนี้ไม่เหมาะสมเนื่องจากมีเนื้อหาที่เป็นอันตราย".to_string());
 
         let validation_result = response.validate();
 
         // Invalid responses should pass validation (they're valid responses)
-        assert!(validation_result.is_ok(), "Invalid response should pass validation");
+        assert!(
+            validation_result.is_ok(),
+            "Invalid response should pass validation"
+        );
         assert!(!response.is_valid, "Response should be marked as invalid");
         assert!(!response.reason.is_empty(), "Reason should not be empty");
     }
@@ -356,7 +372,10 @@ mod tests {
 
         let validation_result = valid_thai_response.validate();
 
-        assert!(validation_result.is_ok(), "Thai persona response should pass validation");
+        assert!(
+            validation_result.is_ok(),
+            "Thai persona response should pass validation"
+        );
         assert!(
             valid_thai_response.contains_thai_chars(),
             "Thai response should contain Thai characters"
@@ -368,7 +387,10 @@ mod tests {
         );
 
         let validation_result = non_thai_response.validate();
-        assert!(validation_result.is_err(), "Non-Thai response should fail validation");
+        assert!(
+            validation_result.is_err(),
+            "Non-Thai response should fail validation"
+        );
     }
 
     #[tokio::test]

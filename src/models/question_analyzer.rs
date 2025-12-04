@@ -59,13 +59,22 @@ pub const ALLOWED_PERIODS: &[&str] = &[
 #[derive(Debug, Error)]
 pub enum AnalysisValidationError {
     #[error("Invalid mood: {mood}. Allowed: {allowed_values}")]
-    InvalidMood { mood: String, allowed_values: String },
+    InvalidMood {
+        mood: String,
+        allowed_values: String,
+    },
 
     #[error("Invalid topic: {topic}. Allowed: {allowed_values}")]
-    InvalidTopic { topic: String, allowed_values: String },
+    InvalidTopic {
+        topic: String,
+        allowed_values: String,
+    },
 
     #[error("Invalid period: {period}. Allowed: {allowed_values}")]
-    InvalidPeriod { period: String, allowed_values: String },
+    InvalidPeriod {
+        period: String,
+        allowed_values: String,
+    },
 }
 
 impl QuestionAnalyzerResponse {
@@ -193,7 +202,10 @@ mod tests {
         let result = response.validate();
         assert!(result.is_err());
         let error = result.unwrap_err();
-        assert!(matches!(error, AnalysisValidationError::InvalidTopic { .. }));
+        assert!(matches!(
+            error,
+            AnalysisValidationError::InvalidTopic { .. }
+        ));
     }
 
     #[test]
@@ -207,7 +219,10 @@ mod tests {
         let result = response.validate();
         assert!(result.is_err());
         let error = result.unwrap_err();
-        assert!(matches!(error, AnalysisValidationError::InvalidPeriod { .. }));
+        assert!(matches!(
+            error,
+            AnalysisValidationError::InvalidPeriod { .. }
+        ));
     }
 
     #[test]
@@ -323,20 +338,25 @@ mod tests {
         let response = result.unwrap();
         let validation_result = response.validate();
         assert!(validation_result.is_err());
-        assert!(matches!(validation_result.unwrap_err(), AnalysisValidationError::InvalidMood { .. }));
+        assert!(matches!(
+            validation_result.unwrap_err(),
+            AnalysisValidationError::InvalidMood { .. }
+        ));
     }
 
     #[test]
     fn test_placeholder_substitution_all_variables() {
         // Test that all placeholders are replaced correctly in prompt templates
         use crate::config::env::{Environment, EnvironmentConfig, QueuePoolConfig};
-        use crate::utils::prompt_manager::PromptManager;
         use crate::models::PromptRenderContext;
+        use crate::utils::prompt_manager::PromptManager;
 
         // Create test config with template containing placeholders
-        let template_with_placeholders = "วิเคราะห์คำถาม: {question} ด้วยอารมณ์: {mood} ในหัวข้อ: {topic} ช่วงเวลา: {period}";
+        let template_with_placeholders =
+            "วิเคราะห์คำถาม: {question} ด้วยอารมณ์: {mood} ในหัวข้อ: {topic} ช่วงเวลา: {period}";
         use base64::Engine as _;
-        let encoded_template = base64::engine::general_purpose::STANDARD.encode(template_with_placeholders);
+        let encoded_template =
+            base64::engine::general_purpose::STANDARD.encode(template_with_placeholders);
 
         let config = EnvironmentConfig {
             environment: Environment::Development,
@@ -413,7 +433,11 @@ mod tests {
                 "ความรักและความสัมพันธ์".to_string(),
                 "ปัจจุบัน".to_string(),
             );
-            assert!(response.validate().is_ok(), "Valid mood '{}' should pass", valid_mood);
+            assert!(
+                response.validate().is_ok(),
+                "Valid mood '{}' should pass",
+                valid_mood
+            );
         }
     }
 
@@ -426,7 +450,11 @@ mod tests {
                 valid_topic.to_string(),
                 "ปัจจุบัน".to_string(),
             );
-            assert!(response.validate().is_ok(), "Valid topic '{}' should pass", valid_topic);
+            assert!(
+                response.validate().is_ok(),
+                "Valid topic '{}' should pass",
+                valid_topic
+            );
         }
     }
 
@@ -439,7 +467,11 @@ mod tests {
                 "ความรักและความสัมพันธ์".to_string(),
                 valid_period.to_string(),
             );
-            assert!(response.validate().is_ok(), "Valid period '{}' should pass", valid_period);
+            assert!(
+                response.validate().is_ok(),
+                "Valid period '{}' should pass",
+                valid_period
+            );
         }
     }
 
@@ -447,8 +479,8 @@ mod tests {
     fn test_end_to_end_question_analysis() {
         // Test complete flow from question to analysis result using mock data
         use crate::config::env::{Environment, EnvironmentConfig, QueuePoolConfig};
-        use crate::utils::prompt_manager::PromptManager;
         use crate::models::PromptRenderContext;
+        use crate::utils::prompt_manager::PromptManager;
 
         // Mock the complete flow:
         // 1. Load encoded prompt template
@@ -494,7 +526,8 @@ mod tests {
         }
         "#;
 
-        let parsed_response: QuestionAnalyzerResponse = serde_json::from_str(mock_ai_response).unwrap();
+        let parsed_response: QuestionAnalyzerResponse =
+            serde_json::from_str(mock_ai_response).unwrap();
 
         // Step 4: Validate the complete flow result
         assert!(parsed_response.validate().is_ok());

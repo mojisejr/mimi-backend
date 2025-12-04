@@ -28,7 +28,10 @@ impl QuestionFilterResponse {
     ///
     /// A new QuestionFilterResponse with is_valid=true
     pub fn valid(reason: String) -> Self {
-        Self { is_valid: true, reason }
+        Self {
+            is_valid: true,
+            reason,
+        }
     }
 
     /// Create an invalid response with Thai reason
@@ -41,7 +44,10 @@ impl QuestionFilterResponse {
     ///
     /// A new QuestionFilterResponse with is_valid=false
     pub fn invalid(reason: String) -> Self {
-        Self { is_valid: false, reason }
+        Self {
+            is_valid: false,
+            reason,
+        }
     }
 
     /// Validate the response format and content
@@ -85,28 +91,20 @@ mod tests {
 
     #[test]
     fn test_question_filter_response_valid_creation() {
-        let response = QuestionFilterResponse::valid(
-            "คำถามนี้เหมาะสมสำหรับการทำนายดวงชะตา".to_string(),
-        );
+        let response =
+            QuestionFilterResponse::valid("คำถามนี้เหมาะสมสำหรับการทำนายดวงชะตา".to_string());
 
         assert!(response.is_valid);
-        assert_eq!(
-            response.reason,
-            "คำถามนี้เหมาะสมสำหรับการทำนายดวงชะตา"
-        );
+        assert_eq!(response.reason, "คำถามนี้เหมาะสมสำหรับการทำนายดวงชะตา");
     }
 
     #[test]
     fn test_question_filter_response_invalid_creation() {
-        let response = QuestionFilterResponse::invalid(
-            "คำถามนี้ไม่เหมาะสมเนื่องจากมีเนื้อหาที่เป็นอันตราย".to_string(),
-        );
+        let response =
+            QuestionFilterResponse::invalid("คำถามนี้ไม่เหมาะสมเนื่องจากมีเนื้อหาที่เป็นอันตราย".to_string());
 
         assert!(!response.is_valid);
-        assert_eq!(
-            response.reason,
-            "คำถามนี้ไม่เหมาะสมเนื่องจากมีเนื้อหาที่เป็นอันตราย"
-        );
+        assert_eq!(response.reason, "คำถามนี้ไม่เหมาะสมเนื่องจากมีเนื้อหาที่เป็นอันตราย");
     }
 
     #[test]
@@ -124,12 +122,15 @@ mod tests {
         let result = response.validate();
 
         assert!(result.is_err());
-        assert!(result.unwrap_err().contains("should contain Thai characters"));
+        assert!(result
+            .unwrap_err()
+            .contains("should contain Thai characters"));
     }
 
     #[test]
     fn test_response_validation_invalid_with_no_thai() {
-        let response = QuestionFilterResponse::invalid("This question is inappropriate".to_string());
+        let response =
+            QuestionFilterResponse::invalid("This question is inappropriate".to_string());
         let result = response.validate();
 
         // Invalid responses don't require Thai characters (they could be system messages)
@@ -138,9 +139,8 @@ mod tests {
 
     #[test]
     fn test_response_validation_valid_with_thai() {
-        let response = QuestionFilterResponse::valid(
-            "คำถามของคุณเหมาะสมสำหรับการทำนายดวงชะตาค่ะ".to_string(),
-        );
+        let response =
+            QuestionFilterResponse::valid("คำถามของคุณเหมาะสมสำหรับการทำนายดวงชะตาค่ะ".to_string());
         let result = response.validate();
 
         assert!(result.is_ok());
@@ -160,9 +160,7 @@ mod tests {
 
     #[test]
     fn test_json_serialization_deserialization() {
-        let original = QuestionFilterResponse::valid(
-            "คำถามนี้เหมาะสมสำหรับการทำนาย".to_string(),
-        );
+        let original = QuestionFilterResponse::valid("คำถามนี้เหมาะสมสำหรับการทำนาย".to_string());
 
         // Serialize to JSON
         let json = serde_json::to_string(&original).expect("Failed to serialize");

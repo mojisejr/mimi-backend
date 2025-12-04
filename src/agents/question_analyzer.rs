@@ -5,10 +5,10 @@
 //! Part of the LangGraph-style agent workflow.
 
 use crate::config::env::EnvironmentConfig;
-use crate::models::question_analyzer::QuestionAnalyzerResponse;
 use crate::models::prompt::PromptRenderContext;
+use crate::models::question_analyzer::QuestionAnalyzerResponse;
 use crate::utils::gemini::{GeminiClient, GeminiError};
-use crate::utils::prompt_manager::{PromptManager, PromptError};
+use crate::utils::prompt_manager::{PromptError, PromptManager};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use thiserror::Error;
@@ -113,26 +113,36 @@ impl QuestionAnalyzer {
     }
 
     /// Analyze question content using Thai prompts and structured responses
-    async fn analyze_question_content(&self, question: &str) -> Result<QuestionAnalyzerResponse, QuestionAnalyzerError> {
+    async fn analyze_question_content(
+        &self,
+        question: &str,
+    ) -> Result<QuestionAnalyzerResponse, QuestionAnalyzerError> {
         // Build context for template rendering
         let context = self.build_analysis_context(question).await;
 
         // Load and render Thai prompt template
-        let template = self.prompt_manager.load_prompt("question_analyzer")
+        let template = self
+            .prompt_manager
+            .load_prompt("question_analyzer")
             .map_err(QuestionAnalyzerError::TemplateError)?;
-        let formatted_prompt = self.prompt_manager.render_template(&template, &context)
+        let formatted_prompt = self
+            .prompt_manager
+            .render_template(&template, &context)
             .map_err(QuestionAnalyzerError::TemplateError)?;
 
         // Call Gemini API with new prompt
         let response = self.client.generate_text(&formatted_prompt).await?;
 
         // Parse and validate JSON response
-        let analysis_response: QuestionAnalyzerResponse = serde_json::from_str(&response)
-            .map_err(QuestionAnalyzerError::JsonParseError)?;
+        let analysis_response: QuestionAnalyzerResponse =
+            serde_json::from_str(&response).map_err(QuestionAnalyzerError::JsonParseError)?;
 
         // Validate response against allowed values
-        analysis_response.validate()
-            .map_err(|e| QuestionAnalyzerError::ValidationError { message: e.to_string() })?;
+        analysis_response
+            .validate()
+            .map_err(|e| QuestionAnalyzerError::ValidationError {
+                message: e.to_string(),
+            })?;
 
         Ok(analysis_response)
     }
@@ -143,8 +153,11 @@ impl QuestionAnalyzer {
         Ok(response.mood)
     }
 
-  /// Get analysis summary for logging/metrics
-    pub async fn get_analysis_summary(&self, question: &str) -> Result<AnalysisSummary, QuestionAnalyzerError> {
+    /// Get analysis summary for logging/metrics
+    pub async fn get_analysis_summary(
+        &self,
+        question: &str,
+    ) -> Result<AnalysisSummary, QuestionAnalyzerError> {
         let response = self.analyze_question(question).await?;
         Ok(AnalysisSummary {
             mood: response.mood,
@@ -171,7 +184,8 @@ impl QuestionAnalyzer {
             "อยากรู้" // Default for Thai questions
         } else {
             "curious" // Default for English questions - but this shouldn't happen in Thai system
-        }.to_string();
+        }
+        .to_string();
 
         QuestionAnalyzerResponse {
             mood,
@@ -188,7 +202,9 @@ impl QuestionAnalyzer {
         let response = self.analyze_question(question).await?;
         // Map Thai topics to English categories for backward compatibility
         match response.topic.as_str() {
-            "ความรักและความสัมพันธ์" => Ok("love".to_string()),
+            "ความรักและความสัมพันธ์" => {
+                Ok("love".to_string())
+            }
             "การงานและอาชีพ" => Ok("career".to_string()),
             "การเงิน" => Ok("finance".to_string()),
             "สุขภาพ (ภาพรวม)" => Ok("health".to_string()),
@@ -243,7 +259,9 @@ impl Default for QuestionAnalyzer {
         // Use tokio::task::block_in_place for async in Default
         tokio::task::block_in_place(|| {
             tokio::runtime::Handle::current().block_on(async {
-                Self::new().await.expect("GEMINI_API_KEY and environment must be set")
+                Self::new()
+                    .await
+                    .expect("GEMINI_API_KEY and environment must be set")
             })
         })
     }
@@ -411,13 +429,11 @@ mod tests {
             "อยากรู้"
         } else {
             "curious"
-        }.to_string();
+        }
+        .to_string();
 
-        let response = QuestionAnalyzerResponse::new(
-            mood,
-            "การตัดสินใจ".to_string(),
-            "ไม่ระบุ".to_string(),
-        );
+        let response =
+            QuestionAnalyzerResponse::new(mood, "การตัดสินใจ".to_string(), "ไม่ระบุ".to_string());
 
         assert_eq!(response.mood, "อยากรู้");
         assert_eq!(response.topic, "การตัดสินใจ");

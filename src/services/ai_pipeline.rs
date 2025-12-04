@@ -222,7 +222,8 @@ impl AIPipelineService {
 
     /// Validate a question only (no reading generation)
     pub async fn validate_question(&self, question: &str) -> Result<(), AIPipelineError> {
-        let validation_result = self.question_filter
+        let validation_result = self
+            .question_filter
             .validate_question(question)
             .await
             .map_err(|e| AIPipelineError::QuestionValidationFailed(e.to_string()))?;
@@ -230,7 +231,9 @@ impl AIPipelineService {
         if validation_result.is_valid {
             Ok(())
         } else {
-            Err(AIPipelineError::QuestionValidationFailed(validation_result.reason))
+            Err(AIPipelineError::QuestionValidationFailed(
+                validation_result.reason,
+            ))
         }
     }
 
