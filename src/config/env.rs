@@ -326,6 +326,18 @@ pub struct EnvironmentConfig {
     pub stream_key: String,
     /// Consumer group name
     pub consumer_group: String,
+    /// Question Filter Agent prompt (base64 encoded)
+    pub question_filter_prompt: String,
+    /// Question Analyzer Agent prompt (base64 encoded)
+    pub question_analyzer_prompt: String,
+    /// Reading Agent prompt (base64 encoded)
+    pub reading_agent_prompt: String,
+    /// Question Filter prompt version for migration management
+    pub question_filter_version: String,
+    /// Question Analyzer prompt version for migration management
+    pub question_analyzer_version: String,
+    /// Reading Agent prompt version for migration management
+    pub reading_agent_version: String,
 }
 
 impl EnvironmentConfig {
@@ -354,6 +366,18 @@ impl EnvironmentConfig {
             consumer_group: std::env::var("REDIS_CONSUMER_GROUP")
                 .or_else(|_| std::env::var("UPSTASH_REDIS_CONSUMER_GROUP"))
                 .unwrap_or_else(|_| "tarot-workers".to_string()),
+            question_filter_prompt: std::env::var("QUESTION_FILTER_PROMPT")
+                .unwrap_or_else(|_| "".to_string()),
+            question_analyzer_prompt: std::env::var("QUESTION_ANALYZER_PROMPT")
+                .unwrap_or_else(|_| "".to_string()),
+            reading_agent_prompt: std::env::var("READING_AGENT_PROMPT")
+                .unwrap_or_else(|_| "".to_string()),
+            question_filter_version: std::env::var("QUESTION_FILTER_VERSION")
+                .unwrap_or_else(|_| "v1".to_string()),
+            question_analyzer_version: std::env::var("QUESTION_ANALYZER_VERSION")
+                .unwrap_or_else(|_| "v1".to_string()),
+            reading_agent_version: std::env::var("READING_AGENT_VERSION")
+                .unwrap_or_else(|_| "v1".to_string()),
         };
 
         // Validate that at least one queue backend is configured

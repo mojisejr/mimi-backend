@@ -4,6 +4,7 @@
 
 // pub mod reading_job; // Temporarily excluded due to database schema issues
 pub mod job_types;
+pub mod prompt;
 pub mod reading_job_simple;
 pub mod tarot_request;
 
