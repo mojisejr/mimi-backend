@@ -1,7 +1,6 @@
 #!/usr/bin/env rust-script
 //! Test script to demonstrate agent flow output
 
-use std::env;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
