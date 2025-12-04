@@ -7,6 +7,7 @@ pub mod job_types;
 pub mod prompt;
 pub mod question_analyzer;
 pub mod question_filter;
+pub mod reading_agent;
 pub mod reading_job_simple;
 pub mod tarot_request;
 
@@ -21,6 +22,7 @@ pub use job_types::*;
 pub use prompt::*;
 pub use question_analyzer::*;
 pub use question_filter::*;
+pub use reading_agent::*;
 pub use tarot_request::*;
 
 // Re-export specific types with qualified names to avoid conflicts
