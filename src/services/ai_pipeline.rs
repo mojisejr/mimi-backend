@@ -76,7 +76,7 @@ impl AIPipelineService {
     /// Create a new AI Pipeline Service
     pub async fn new() -> Result<Self, AIPipelineError> {
         Ok(Self {
-            question_filter: QuestionFilter::new().map_err(|e| {
+            question_filter: QuestionFilter::new().await.map_err(|e| {
                 AIPipelineError::ConfigurationError {
                     reason: format!("Failed to create QuestionFilter: {}", e),
                 }
@@ -208,10 +208,16 @@ impl AIPipelineService {
 
     /// Validate a question only (no reading generation)
     pub async fn validate_question(&self, question: &str) -> Result<(), AIPipelineError> {
-        self.question_filter
+        let validation_result = self.question_filter
             .validate_question(question)
             .await
-            .map_err(|e| AIPipelineError::QuestionValidationFailed(e.to_string()))
+            .map_err(|e| AIPipelineError::QuestionValidationFailed(e.to_string()))?;
+
+        if validation_result.is_valid {
+            Ok(())
+        } else {
+            Err(AIPipelineError::QuestionValidationFailed(validation_result.reason))
+        }
     }
 
     /// Analyze a question only (no reading generation)
