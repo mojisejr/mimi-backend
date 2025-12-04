@@ -20,10 +20,16 @@ fn test_test_helper_functions() {
 
     // Test Thai text detection
     let thai_text = "สวัสดีครับ";
-    assert!(crate::contains_thai_text(thai_text), "Should detect Thai text");
+    assert!(
+        crate::contains_thai_text(thai_text),
+        "Should detect Thai text"
+    );
 
     let english_text = "Hello";
-    assert!(!crate::contains_thai_text(english_text), "Should not detect Thai in English text");
+    assert!(
+        !crate::contains_thai_text(english_text),
+        "Should not detect Thai in English text"
+    );
 }
 
 #[test]
@@ -32,8 +38,14 @@ fn test_scenarios_structure() {
     assert!(!scenarios.is_empty(), "Should have test scenarios");
 
     for scenario in scenarios {
-        assert!(!scenario.name.is_empty(), "Scenario name should not be empty");
-        assert!(!scenario.question.is_empty(), "Scenario question should not be empty");
+        assert!(
+            !scenario.name.is_empty(),
+            "Scenario name should not be empty"
+        );
+        assert!(
+            !scenario.question.is_empty(),
+            "Scenario question should not be empty"
+        );
         assert!(scenario.card_count > 0, "Card count should be positive");
     }
 }

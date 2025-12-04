@@ -3,7 +3,10 @@
 //! Test-Driven Development tests for worker with AI pipeline processing.
 //! These tests are written BEFORE implementation (Red Phase).
 
-use mimivibe_backend::services::card_randomizer::CardRandomizer;
+use mimivibe_backend::{
+    models::JobStatus,
+    services::{card_randomizer::CardRandomizer, AIPipelineService},
+};
 use serde_json::json;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -96,7 +99,7 @@ async fn test_card_randomizer_5_cards() {
 #[tokio::test]
 async fn test_card_randomizer_invalid_count() {
     // Test: CardRandomizer should reject invalid card counts
-    let randomizer = CardRandomizer::new();
+    let mut randomizer = CardRandomizer::new();
 
     // Test with 0 cards
     let result = randomizer.pick_cards(0).await;
@@ -290,8 +293,8 @@ async fn test_worker_error_handling_gemini_api_failure() {
     // Test: Worker should handle Gemini API failures gracefully
     // This test would mock Gemini API failure scenarios
 
-    let question = "ควรจะลงทุนอะไรดีครับ";
-    let invalid_api_key = "invalid-key";
+    let _question = "ควรจะลงทุนอะไรดีครับ";
+    let _invalid_api_key = "invalid-key";
 
     // This should test error handling when Gemini API is unavailable
     // Implementation should handle this gracefully
