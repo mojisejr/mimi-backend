@@ -81,7 +81,7 @@ impl AIPipelineService {
                     reason: format!("Failed to create QuestionFilter: {}", e),
                 }
             })?,
-            question_analyzer: QuestionAnalyzer::new().map_err(|e| {
+            question_analyzer: QuestionAnalyzer::new().await.map_err(|e| {
                 AIPipelineError::ConfigurationError {
                     reason: format!("Failed to create QuestionAnalyzer: {}", e),
                 }
@@ -116,14 +116,21 @@ impl AIPipelineService {
             .map_err(|e| AIPipelineError::QuestionValidationFailed(e.to_string()))?;
 
         // Step 2: Analyze the question
-        let question_analysis = self
+        let _question_analysis = self
             .question_analyzer
             .analyze_question(&validated_question)
             .await
             .map_err(|e| AIPipelineError::QuestionAnalysisFailed(e.to_string()))?;
 
-        let category = question_analysis.category.clone();
-        let intent = question_analysis.intent.clone();
+        // Convert new QuestionAnalyzerResponse to legacy format for compatibility
+        let legacy_analysis = self
+            .question_analyzer
+            .analyze_question_legacy(&validated_question)
+            .await
+            .map_err(|e| AIPipelineError::QuestionAnalysisFailed(e.to_string()))?;
+
+        let category = legacy_analysis.category.clone();
+        let intent = legacy_analysis.intent.clone();
 
         // Step 3: Select cards
         let cards = self
@@ -133,7 +140,7 @@ impl AIPipelineService {
             .map_err(|e| AIPipelineError::CardSelectionFailed(e.to_string()))?;
 
         // Step 4: Generate reading
-        let analysis_json = json!(question_analysis);
+        let analysis_json = json!(legacy_analysis);
         let reading = self
             .reading_agent
             .generate_reading(&validated_question, &cards, &analysis_json)
@@ -145,7 +152,7 @@ impl AIPipelineService {
         Ok(PipelineResult {
             question: validated_question,
             cards,
-            question_analysis: json!(question_analysis),
+            question_analysis: json!(legacy_analysis),
             reading: reading.interpretation,
             metadata: PipelineMetadata {
                 processing_time_ms: processing_time,
@@ -174,14 +181,21 @@ impl AIPipelineService {
             .map_err(|e| AIPipelineError::QuestionValidationFailed(e.to_string()))?;
 
         // Analyze the question
-        let question_analysis = self
+        let _question_analysis = self
             .question_analyzer
             .analyze_question(&validated_question)
             .await
             .map_err(|e| AIPipelineError::QuestionAnalysisFailed(e.to_string()))?;
 
+        // Convert to legacy format for compatibility
+        let legacy_analysis = self
+            .question_analyzer
+            .analyze_question_legacy(&validated_question)
+            .await
+            .map_err(|e| AIPipelineError::QuestionAnalysisFailed(e.to_string()))?;
+
         // Generate reading with provided cards
-        let analysis_json = json!(question_analysis);
+        let analysis_json = json!(legacy_analysis);
         let reading = self
             .reading_agent
             .generate_reading(&validated_question, cards, &analysis_json)
@@ -193,13 +207,13 @@ impl AIPipelineService {
         Ok(PipelineResult {
             question: validated_question,
             cards: cards.to_vec(),
-            question_analysis: json!(question_analysis),
+            question_analysis: json!(legacy_analysis),
             reading: reading.interpretation,
             metadata: PipelineMetadata {
                 processing_time_ms: processing_time,
                 card_count: cards.len() as u32,
-                category: question_analysis.category,
-                intent: question_analysis.intent,
+                category: legacy_analysis.category,
+                intent: legacy_analysis.intent,
                 model: "gemini-pro".to_string(),
                 timestamp: chrono::Utc::now(),
             },
@@ -208,7 +222,8 @@ impl AIPipelineService {
 
     /// Validate a question only (no reading generation)
     pub async fn validate_question(&self, question: &str) -> Result<(), AIPipelineError> {
-        let validation_result = self.question_filter
+        let validation_result = self
+            .question_filter
             .validate_question(question)
             .await
             .map_err(|e| AIPipelineError::QuestionValidationFailed(e.to_string()))?;
@@ -216,7 +231,9 @@ impl AIPipelineService {
         if validation_result.is_valid {
             Ok(())
         } else {
-            Err(AIPipelineError::QuestionValidationFailed(validation_result.reason))
+            Err(AIPipelineError::QuestionValidationFailed(
+                validation_result.reason,
+            ))
         }
     }
 
