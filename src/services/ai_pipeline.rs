@@ -9,6 +9,7 @@ use crate::{
         question_analyzer::QuestionAnalyzer, question_filter::QuestionFilter,
         reading_agent::ReadingAgent,
     },
+    models::reading_agent::CardInfo,
     services::CardRandomizer,
 };
 use serde_json::json;
@@ -86,7 +87,7 @@ impl AIPipelineService {
                     reason: format!("Failed to create QuestionAnalyzer: {}", e),
                 }
             })?,
-            reading_agent: ReadingAgent::new().map_err(|e| {
+            reading_agent: ReadingAgent::new().await.map_err(|e| {
                 AIPipelineError::ConfigurationError {
                     reason: format!("Failed to create ReadingAgent: {}", e),
                 }
@@ -139,11 +140,27 @@ impl AIPipelineService {
             .await
             .map_err(|e| AIPipelineError::CardSelectionFailed(e.to_string()))?;
 
-        // Step 4: Generate reading
-        let analysis_json = json!(legacy_analysis);
+        // Step 4: Generate reading - convert to new CardInfo format
+        let card_infos: Vec<CardInfo> = cards
+            .iter()
+            .enumerate()
+            .map(|(index, card_name)| {
+                CardInfo::new(
+                    index as u32,
+                    card_name,
+                    &format!("ไพ่{}", card_name),
+                    index as u32,
+                )
+            })
+            .collect();
+
+        let mood = &legacy_analysis.emotion;
+        let topic = &legacy_analysis.category;
+        let period = "ไม่ระบุ"; // Default period
+
         let reading = self
             .reading_agent
-            .generate_reading(&validated_question, &cards, &analysis_json)
+            .generate_reading(&validated_question, mood, topic, period, &card_infos)
             .await
             .map_err(|e| AIPipelineError::ReadingGenerationFailed(e.to_string()))?;
 
@@ -153,7 +170,7 @@ impl AIPipelineService {
             question: validated_question,
             cards,
             question_analysis: json!(legacy_analysis),
-            reading: reading.interpretation,
+            reading: reading.reading,
             metadata: PipelineMetadata {
                 processing_time_ms: processing_time,
                 card_count,
@@ -194,11 +211,27 @@ impl AIPipelineService {
             .await
             .map_err(|e| AIPipelineError::QuestionAnalysisFailed(e.to_string()))?;
 
-        // Generate reading with provided cards
-        let analysis_json = json!(legacy_analysis);
+        // Generate reading with provided cards - convert to new CardInfo format
+        let card_infos: Vec<CardInfo> = cards
+            .iter()
+            .enumerate()
+            .map(|(index, card_name)| {
+                CardInfo::new(
+                    index as u32,
+                    card_name,
+                    &format!("ไพ่{}", card_name),
+                    index as u32,
+                )
+            })
+            .collect();
+
+        let mood = &legacy_analysis.emotion;
+        let topic = &legacy_analysis.category;
+        let period = "ไม่ระบุ"; // Default period
+
         let reading = self
             .reading_agent
-            .generate_reading(&validated_question, cards, &analysis_json)
+            .generate_reading(&validated_question, mood, topic, period, &card_infos)
             .await
             .map_err(|e| AIPipelineError::ReadingGenerationFailed(e.to_string()))?;
 
@@ -208,7 +241,7 @@ impl AIPipelineService {
             question: validated_question,
             cards: cards.to_vec(),
             question_analysis: json!(legacy_analysis),
-            reading: reading.interpretation,
+            reading: reading.reading,
             metadata: PipelineMetadata {
                 processing_time_ms: processing_time,
                 card_count: cards.len() as u32,
@@ -265,7 +298,7 @@ impl AIPipelineService {
         question_analysis: Option<&serde_json::Value>,
     ) -> Result<String, AIPipelineError> {
         // Use provided analysis or generate new one
-        let analysis = match question_analysis {
+        let _analysis = match question_analysis {
             Some(analysis) => analysis.clone(),
             None => {
                 let validated_question = self
@@ -290,13 +323,32 @@ impl AIPipelineService {
             .await
             .map_err(|e| AIPipelineError::QuestionValidationFailed(e.to_string()))?;
 
+        // Convert to new CardInfo format
+        let card_infos: Vec<CardInfo> = cards
+            .iter()
+            .enumerate()
+            .map(|(index, card_name)| {
+                CardInfo::new(
+                    index as u32,
+                    card_name,
+                    &format!("ไพ่{}", card_name),
+                    index as u32,
+                )
+            })
+            .collect();
+
+        // Extract mood, topic from analysis or use defaults
+        let mood = "อยากรู้"; // Default mood
+        let topic = "การตัดสินใจ"; // Default topic
+        let period = "ไม่ระบุ"; // Default period
+
         let reading = self
             .reading_agent
-            .generate_reading(&validated_question, cards, &analysis)
+            .generate_reading(&validated_question, mood, topic, period, &card_infos)
             .await
             .map_err(|e| AIPipelineError::ReadingGenerationFailed(e.to_string()))?;
 
-        Ok(reading.interpretation)
+        Ok(reading.reading)
     }
 
     /// Get pipeline statistics
