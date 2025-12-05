@@ -107,6 +107,8 @@ All task planning must include explicit test-first requirements:
 - Tests document expected behavior
 - All tests pass after implementation (Green phase)
 - Code is refactored while tests remain passing (Refactor phase)
+- **CRITICAL**: Use `mod setup;` at top of test file to auto-load `.env`
+- **CRITICAL**: Do NOT use `#[ignore]` - setup.rs loads environment automatically
 ```
 
 ### Examples with Test-First Planning
@@ -121,7 +123,7 @@ All task planning must include explicit test-first requirements:
 /plan Add authentication module with unit tests for auth validation and integration tests for API endpoints
 ```
 
-**Full Example Task Description:**
+**Full Example Task Description with Setup.rs Pattern:**
 ```markdown
 ### 🎯 SINGLE OBJECTIVE
 - Implement question filter agent that validates tarot questions before processing
@@ -138,6 +140,38 @@ Tests to write BEFORE code implementation:
 - [ ] All tests fail initially (Red phase - before implementation)
 - [ ] Tests pass after implementation (Green phase)
 - [ ] Code is refactored for quality while tests remain passing (Refactor phase)
+- [ ] **CRITICAL**: Test file uses `mod setup;` at top to auto-load `.env`
+- [ ] **CRITICAL**: No `#[ignore]` attributes - tests run automatically
+- [ ] **CRITICAL**: Test file calls `setup::setup()` before using DATABASE_URL
+
+**Example Test File Structure:**
+```rust
+use tokio::test;
+
+mod setup;  // AUTO-LOAD .env via tests/setup.rs
+
+#[tokio::test]
+async fn test_empty_question_rejected() {
+    setup::setup();  // Load .env environment before test
+    
+    let result = filter_question("").await;
+    assert!(result.is_err());
+}
+
+#[tokio::test]
+async fn test_api_endpoint_validation() {
+    setup::setup();  // Load .env for DATABASE_URL if needed
+    
+    // Integration test with real API
+    let response = client
+        .post("/api/tarot")
+        .json(&json!({"question": ""}))
+        .send()
+        .await;
+    
+    assert_eq!(response.status(), 400);
+}
+```
 ```
 
 ## Mode-Specific Next Steps

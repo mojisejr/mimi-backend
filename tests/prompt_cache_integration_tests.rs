@@ -3,6 +3,8 @@
 //! Tests for verifying prompt cache initialization in worker and API startup.
 //! Validates thread-safe Arc<HashMap> access and large prompt handling.
 
+mod setup;
+
 use mimivibe_backend::repository::PromptRepository;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -12,13 +14,13 @@ type PromptCache = Arc<HashMap<String, String>>;
 
 /// Helper function to create database pool for tests
 async fn create_test_pool() -> Result<sqlx::PgPool, sqlx::Error> {
+    setup::setup(); // Load environment variables from .env
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set for tests");
     sqlx::PgPool::connect(&database_url).await
 }
 
 /// Test: Prompt cache initialization creates Arc with expected entries
 #[tokio::test]
-#[ignore] // Requires database connection
 async fn test_prompt_cache_initialization() {
     // Arrange: Get database pool
     let pool = create_test_pool().await.expect("Failed to create pool");
@@ -50,7 +52,6 @@ async fn test_prompt_cache_initialization() {
 
 /// Test: Thread-safe cache access - multiple threads read same prompt simultaneously
 #[tokio::test]
-#[ignore] // Requires database connection
 async fn test_thread_safe_cache_access() {
     // Arrange: Create prompt cache
     let pool = create_test_pool().await.expect("Failed to create pool");
@@ -96,7 +97,6 @@ async fn test_thread_safe_cache_access() {
 
 /// Test: Large prompt handling - reading_agent (19KB+) loaded correctly
 #[tokio::test]
-#[ignore] // Requires database connection
 async fn test_large_prompt_handling() {
     // Arrange: Get database pool
     let pool = create_test_pool().await.expect("Failed to create pool");
@@ -151,7 +151,6 @@ async fn test_cache_empty_fallback() {
 
 /// Test: Prompt content rendering with placeholders
 #[tokio::test]
-#[ignore] // Requires database connection
 async fn test_prompt_placeholder_rendering() {
     // Arrange: Get database pool and load prompts
     let pool = create_test_pool().await.expect("Failed to create pool");
@@ -195,7 +194,6 @@ mod cache_concurrency_tests {
 
     /// Test: Performance - cache read speed under concurrent load
     #[tokio::test]
-    #[ignore] // Requires database connection
     async fn test_cache_read_performance() {
         // Arrange
         let pool = create_test_pool().await.expect("Failed to create pool");

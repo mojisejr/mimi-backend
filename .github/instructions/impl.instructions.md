@@ -71,6 +71,8 @@ Implementation Workflow - Execute GitHub issue implementation based on current m
    - Write comprehensive unit tests for the new functionality
    - Write integration tests for API endpoints or service integrations
    - Tests document the expected behavior before code exists
+   - Use `mod setup;` at top of test file to auto-load `.env`
+   - Do NOT use `#[ignore]` - setup.rs loads environment automatically
    - This ensures Test-Driven Development (TDD) workflow
 
 4. **Mode-Specific Execution**:
@@ -93,10 +95,11 @@ Implementation Workflow - Execute GitHub issue implementation based on current m
    ✅ Test must be written BEFORE code implementation (Red Phase)
    ✅ Test coverage must be comprehensive for new/modified code
    ✅ Tests must PASS (Green Phase complete)
+   ✅ Tests automatically load .env via setup::setup() in test files
+   cargo test                     # Test validation (MANDATORY - runs all tests auto)
    cargo build --release          # Build validation
    cargo clippy -- -D warnings    # Lint validation (deny warnings)
    cargo fmt -- --check           # Format validation (no changes)
-   cargo test                     # Test validation (MANDATORY)
    ```
 
 6. **Commit Format**:
