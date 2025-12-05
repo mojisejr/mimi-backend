@@ -7,14 +7,14 @@
 //! 4. Result stored in database
 //! 5. User retrieves completed reading
 
+use redis::Client;
+use serde_json::{json, Value};
+use sqlx::PgPool;
 use std::time::Duration;
 use uuid::Uuid;
-use serde_json::{json, Value};
-use redis::Client;
-use sqlx::PgPool;
 
 mod common;
-use common::setup::{create_test_app};
+use common::setup::create_test_app;
 
 #[tokio::test]
 async fn complete_tarot_reading_flow_demo() -> Result<(), Box<dyn std::error::Error>> {
@@ -43,7 +43,8 @@ async fn complete_tarot_reading_flow_demo() -> Result<(), Box<dyn std::error::Er
     println!("Question: {}", test_question);
     println!("Cards: {}", request_body["cards"]);
 
-    let response = app.client
+    let response = app
+        .client
         .post("/api/v1/tarots/read")
         .json(&request_body)
         .send()
@@ -92,7 +93,8 @@ async fn complete_tarot_reading_flow_demo() -> Result<(), Box<dyn std::error::Er
     let max_polls = 120; // 2 minutes max
 
     loop {
-        let status_response = app.client
+        let status_response = app
+            .client
             .get(&format!("/api/v1/tarots/{}", job_id))
             .send()
             .await?;
@@ -129,7 +131,8 @@ async fn complete_tarot_reading_flow_demo() -> Result<(), Box<dyn std::error::Er
     println!("\n📖 Step 4: Retrieving Final Reading");
     println!("--------------------------------");
 
-    let final_response = app.client
+    let final_response = app
+        .client
         .get(&format!("/api/v1/tarots/{}", job_id))
         .send()
         .await?;
@@ -210,8 +213,14 @@ async fn complete_tarot_reading_flow_demo() -> Result<(), Box<dyn std::error::Er
     let mut checks = vec![];
 
     checks.push(("Header exists", result_json["header"].is_string()));
-    checks.push(("Cards reading exists", result_json["cards_reading"].is_array()));
-    checks.push(("Reading interpretation exists", result_json["reading"].is_string()));
+    checks.push((
+        "Cards reading exists",
+        result_json["cards_reading"].is_array(),
+    ));
+    checks.push((
+        "Reading interpretation exists",
+        result_json["reading"].is_string(),
+    ));
     checks.push(("Suggestions exist", result_json["suggestions"].is_array()));
     checks.push(("Final message exists", result_json["final"].is_array()));
     checks.push(("End message exists", result_json["end"].is_string()));
@@ -230,7 +239,9 @@ async fn complete_tarot_reading_flow_demo() -> Result<(), Box<dyn std::error::Er
     }
 
     // Performance metrics
-    if let (Some(created), Some(completed)) = (final_job_record.created_at, final_job_record.completed_at) {
+    if let (Some(created), Some(completed)) =
+        (final_job_record.created_at, final_job_record.completed_at)
+    {
         let duration = completed.signed_duration_since(created);
         println!("\n⏱️  Processing time: {} seconds", duration.num_seconds());
     }

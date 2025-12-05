@@ -4,13 +4,11 @@
 //! without needing a separate worker process
 
 use mimivibe_backend::{
-    agents::question_filter::QuestionFilter,
-    agents::question_analyzer::QuestionAnalyzer,
-    agents::reading_agent::ReadingAgent,
-    repository::PromptRepository,
+    agents::question_analyzer::QuestionAnalyzer, agents::question_filter::QuestionFilter,
+    agents::reading_agent::ReadingAgent, repository::PromptRepository,
 };
-use sqlx::PgPool;
 use serde_json::json;
+use sqlx::PgPool;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -87,10 +85,27 @@ async fn test_complete_agent_pipeline_directly() -> Result<(), Box<dyn std::erro
         for i in 0..cards {
             // Sample tarot cards (in real implementation, these would be randomly selected)
             let sample_cards = vec![
-                "The Fool", "The Magician", "The High Priestess", "The Empress", "The Emperor",
-                "The Lovers", "The Chariot", "Strength", "The Hermit", "Wheel of Fortune",
-                "Justice", "The Hanged Man", "Death", "Temperance", "The Devil",
-                "The Tower", "The Star", "The Moon", "The Sun", "Judgement", "The World"
+                "The Fool",
+                "The Magician",
+                "The High Priestess",
+                "The Empress",
+                "The Emperor",
+                "The Lovers",
+                "The Chariot",
+                "Strength",
+                "The Hermit",
+                "Wheel of Fortune",
+                "Justice",
+                "The Hanged Man",
+                "Death",
+                "Temperance",
+                "The Devil",
+                "The Tower",
+                "The Star",
+                "The Moon",
+                "The Sun",
+                "Judgement",
+                "The World",
             ];
             card_names.push(sample_cards[i % sample_cards.len()].to_string());
         }
@@ -151,11 +166,20 @@ async fn test_complete_agent_pipeline_directly() -> Result<(), Box<dyn std::erro
         println!("========================");
         let mut checks = vec![];
 
-        checks.push(("Question passed filter", filter_result["is_appropriate"].is_boolean()));
+        checks.push((
+            "Question passed filter",
+            filter_result["is_appropriate"].is_boolean(),
+        ));
         checks.push(("Analysis generated", analysis_result["mood"].is_string()));
         checks.push(("Reading has header", reading_result["header"].is_string()));
-        checks.push(("Reading has interpretation", reading_result["reading"].is_string()));
-        checks.push(("Reading has suggestions", reading_result["suggestions"].is_array()));
+        checks.push((
+            "Reading has interpretation",
+            reading_result["reading"].is_string(),
+        ));
+        checks.push((
+            "Reading has suggestions",
+            reading_result["suggestions"].is_array(),
+        ));
         checks.push(("Reading has closing", reading_result["end"].is_string()));
 
         let all_passed = checks.iter().all(|(_, passed)| *passed);

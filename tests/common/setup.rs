@@ -1,12 +1,12 @@
 //! Test setup utilities for end-to-end tests
 
-use std::sync::Arc;
+use mimivibe_backend::create_app;
+use mimivibe_backend::queue::tarot_queue::TarotQueue;
+use mimivibe_backend::queue::Queue;
+use redis::Client as RedisClient;
 use reqwest::Client;
 use sqlx::PgPool;
-use redis::Client as RedisClient;
-use mimivibe_backend::create_app;
-use mimivibe_backend::queue::Queue;
-use mimivibe_backend::queue::tarot_queue::TarotQueue;
+use std::sync::Arc;
 
 pub struct TestApp {
     pub client: Client,
