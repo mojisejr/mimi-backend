@@ -12,14 +12,20 @@ use axum::{
     response::Json,
 };
 use serde_json::json;
+use std::collections::HashMap;
 use std::sync::Arc;
 use uuid::Uuid;
+
+/// Type alias for thread-safe prompt cache
+pub type PromptCache = Arc<HashMap<String, String>>;
 
 /// API state containing shared resources
 #[derive(Clone)]
 pub struct ApiState {
     pub redis_client: redis::Client,
     pub tarot_queue: Arc<TarotQueue>,
+    /// Thread-safe cache of AI agent prompts loaded from database
+    pub prompt_cache: PromptCache,
 }
 
 /// Request a tarot reading
