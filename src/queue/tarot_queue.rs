@@ -3,7 +3,7 @@
 //! High-level queue operations specific to tarot reading workflow.
 //! Integrates Redis queue with database persistence through JobRepository.
 
-use crate::{queue::Queue, repository::JobRepository};
+use crate::{models::job_types::JobStatus, queue::Queue, repository::JobRepository};
 use async_trait::async_trait;
 use sqlx::PgPool;
 use std::error::Error;
@@ -289,12 +289,12 @@ impl TarotQueue {
     /// Update job status
     ///
     /// This method updates the status of a job in the database.
-    /// It validates status values and optionally stores result data.
+    /// Uses type-safe JobStatus enum to prevent invalid values.
     ///
     /// # Arguments
     ///
     /// * `job_id` - Job identifier
-    /// * `status` - New status as string ("processing", "completed", "failed")
+    /// * `status` - New status as JobStatus enum
     /// * `result` - Optional result data for completed jobs
     ///
     /// # Returns
@@ -304,17 +304,12 @@ impl TarotQueue {
     pub async fn update_job_status(
         &self,
         job_id: uuid::Uuid,
-        status: &str,
+        status: JobStatus,
         result: Option<serde_json::Value>,
     ) -> Result<(), Box<dyn Error>> {
-        let status = match status {
-            "processing" | "completed" | "failed" => status,
-            _ => return Err(format!("Invalid status: {}", status).into()),
-        };
-
         match result {
             Some(result_json) => {
-                if status == "completed" {
+                if status == JobStatus::Succeeded {
                     sqlx::query(
                         r#"
                         UPDATE jobs

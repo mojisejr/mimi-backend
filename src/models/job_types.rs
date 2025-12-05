@@ -9,7 +9,7 @@ use uuid::Uuid;
 
 /// Simplified job status enum
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, sqlx::Type)]
-#[sqlx(type_name = "text", rename_all = "lowercase")]
+#[sqlx(type_name = "job_status", rename_all = "lowercase")]
 pub enum JobStatus {
     /// Job is queued and waiting for processing
     Queued,

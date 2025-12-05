@@ -8,6 +8,7 @@
 //! - Thread-safe Arc<HashMap> for prompt storage
 //! - AI pipeline integration for tarot readings
 
+use mimivibe_backend::models::job_types::JobStatus;
 use mimivibe_backend::queue::TarotQueue;
 use mimivibe_backend::repository::PromptRepository;
 use mimivibe_backend::worker::TarotWorker;
@@ -145,7 +146,7 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
                 match worker.process_reading_job(question, card_count).await {
                     Ok(result) => {
                         if let Err(e) = queue
-                            .update_job_status(job.id, "completed", Some(result))
+                            .update_job_status(job.id, JobStatus::Succeeded, Some(result))
                             .await
                         {
                             info!("⚠️  Failed to update completed job status: {}", e);
@@ -154,8 +155,9 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
                         }
                     }
                     Err(e) => {
-                        if let Err(update_err) =
-                            queue.update_job_status(job.id, "failed", None).await
+                        if let Err(update_err) = queue
+                            .update_job_status(job.id, JobStatus::Failed, None)
+                            .await
                         {
                             info!("⚠️  Failed to update failed job status: {}", update_err);
                         } else {
