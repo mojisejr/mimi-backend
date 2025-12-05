@@ -205,6 +205,57 @@ impl TarotQueue {
 
         Ok(Self::new(pool, queue))
     }
+
+    /// Poll for the next available job
+    ///
+    /// This method retrieves the next job from the queue for processing.
+    /// For now, this is a stub implementation that will be fully implemented in Slice 4.
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Option<ReadingJob>)` - Next available job, or None if no jobs available
+    /// * `Err(Box<dyn Error>)` - Error if polling failed
+    pub async fn poll_next_job(
+        &self,
+    ) -> Result<Option<crate::models::job_types::ReadingJob>, Box<dyn Error>> {
+        // TODO: This is a stub implementation for Slice 3
+        // Full implementation will be in Slice 4
+        println!("🔍 Polling for next job (stub implementation)");
+        Ok(None) // Return None for now - no jobs available in stub
+    }
+
+    /// Update job status
+    ///
+    /// This method updates the status of a job in the queue.
+    /// For now, this is a stub implementation that will be fully implemented in Slice 4.
+    ///
+    /// # Arguments
+    ///
+    /// * `job_id` - Job identifier
+    /// * `status` - New status as string ("processing", "completed", "failed")
+    /// * `result` - Optional result data for completed jobs
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(())` - Success
+    /// * `Err(Box<dyn Error>)` - Error if update failed
+    pub async fn update_job_status(
+        &self,
+        job_id: uuid::Uuid,
+        status: &str,
+        result: Option<serde_json::Value>,
+    ) -> Result<(), Box<dyn Error>> {
+        // TODO: This is a stub implementation for Slice 3
+        // Full implementation will be in Slice 4
+        println!(
+            "📝 Updating job {} status to '{}' (stub implementation)",
+            job_id, status
+        );
+        if let Some(result_data) = result {
+            println!("   Result data: {}", result_data);
+        }
+        Ok(()) // Always succeed for now
+    }
 }
 
 /// Result of submitting a tarot reading request

@@ -14,6 +14,7 @@ use mimivibe_backend::worker::TarotWorker;
 use std::collections::HashMap;
 use std::env;
 use std::sync::Arc;
+use std::time::Duration;
 use tracing::info;
 
 /// Type alias for thread-safe prompt cache
@@ -106,7 +107,7 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
 
     // Connect to TarotQueue
     info!("🔄 Connecting to tarot job queue...");
-    let _queue = TarotQueue::from_env().await?;
+    let queue = TarotQueue::from_env().await?;
     info!("✅ Connected to tarot job queue");
 
     let worker_id =
@@ -122,29 +123,81 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
     info!("  - AI Model: gemini-pro");
     info!("  - Poll interval: 5 seconds");
 
-    // Demonstrate worker functionality
-    info!("🔮 Queue connection ready for polling implementation");
-    info!("🚀 Demonstrating AI pipeline functionality...");
+    // Start continuous polling loop
+    info!("🚀 Starting worker polling loop...");
+    info!("⏰ Polling interval: 5 seconds");
 
-    // Example job processing
-    let question = "ควรจะลงทุนอะไรดีครับ";
-    let card_count = 3;
+    loop {
+        match queue.poll_next_job().await {
+            Ok(Some(job)) => {
+                info!(
+                    "📋 Found job: {} (question: \"{}\", cards: {})",
+                    job.id,
+                    job.payload
+                        .0
+                        .get("question")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("Unknown question"),
+                    job.payload
+                        .0
+                        .get("card_count")
+                        .and_then(|v| v.as_u64())
+                        .unwrap_or(3)
+                );
 
-    match worker.process_reading_job(question, card_count).await {
-        Ok(result) => {
-            info!("✅ Successfully processed example job");
-            info!("  Question: {}", result["question"]);
-            info!("  Cards: {}", result["cards"]);
-            info!(
-                "  Processing time: {}ms",
-                result["metadata"]["processing_time_ms"]
-            );
+                // Update to processing
+                if let Err(e) = queue.update_job_status(job.id, "processing", None).await {
+                    info!("⚠️  Failed to update job status: {}", e);
+                } else {
+                    info!("🔄 Status updated to 'processing'");
+                }
+
+                // Extract question and card count from job payload
+                let question = job
+                    .payload
+                    .0
+                    .get("question")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("Default question");
+                let card_count = job
+                    .payload
+                    .0
+                    .get("card_count")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(3) as u32;
+
+                // Process through 3-agent pipeline
+                match worker.process_reading_job(question, card_count).await {
+                    Ok(result) => {
+                        if let Err(e) = queue
+                            .update_job_status(job.id, "completed", Some(result))
+                            .await
+                        {
+                            info!("⚠️  Failed to update completed job status: {}", e);
+                        } else {
+                            info!("✅ Job {} completed", job.id);
+                        }
+                    }
+                    Err(e) => {
+                        if let Err(update_err) =
+                            queue.update_job_status(job.id, "failed", None).await
+                        {
+                            info!("⚠️  Failed to update failed job status: {}", update_err);
+                        } else {
+                            info!("❌ Job {} failed: {}", job.id, e);
+                        }
+                    }
+                }
+            }
+            Ok(None) => {
+                info!("💤 No jobs available, waiting...");
+            }
+            Err(e) => {
+                info!("⚠️  Error polling queue: {}", e);
+            }
         }
-        Err(e) => {
-            info!("⚠️  Example job processing failed: {}", e);
-        }
+
+        info!("⏳ Sleeping for 5 seconds...");
+        tokio::time::sleep(Duration::from_secs(5)).await;
     }
-
-    info!("Worker demonstration completed");
-    Ok(())
 }
