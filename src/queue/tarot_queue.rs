@@ -50,7 +50,10 @@ impl TarotQueue {
     pub fn new(pool: PgPool, queue: Arc<dyn Queue + Send + Sync>) -> Self {
         let db_pool = pool.clone();
         let repository = JobRepository::new(pool, queue);
-        Self { repository, db_pool }
+        Self {
+            repository,
+            db_pool,
+        }
     }
 
     /// Submit tarot reading request
@@ -270,10 +273,7 @@ impl TarotQueue {
                     .and_then(|v| v.as_str())
                     .unwrap_or("Unknown question")
                     .to_string();
-                let cards = payload
-                    .get("card_count")
-                    .and_then(as_i32)
-                    .unwrap_or(3);
+                let cards = payload.get("card_count").and_then(as_i32).unwrap_or(3);
 
                 Ok(Some(Job {
                     id: record.id,
@@ -286,7 +286,6 @@ impl TarotQueue {
         }
     }
 
-    
     /// Update job status
     ///
     /// This method updates the status of a job in the database.
@@ -325,7 +324,7 @@ impl TarotQueue {
                             completed_at = NOW(),
                             updated_at = NOW()
                         WHERE id = $3
-                        "#
+                        "#,
                     )
                     .bind(status)
                     .bind(result_json)
@@ -341,7 +340,7 @@ impl TarotQueue {
                             result = $2,
                             updated_at = NOW()
                         WHERE id = $3
-                        "#
+                        "#,
                     )
                     .bind(status)
                     .bind(result_json)
@@ -358,7 +357,7 @@ impl TarotQueue {
                         status = $1,
                         updated_at = NOW()
                     WHERE id = $2
-                    "#
+                    "#,
                 )
                 .bind(status)
                 .bind(job_id)
