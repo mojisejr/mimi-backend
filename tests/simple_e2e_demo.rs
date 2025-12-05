@@ -286,7 +286,10 @@ async fn demo_single_detailed_reading() -> Result<(), Box<dyn std::error::Error>
             }
 
             // Show processing time
-            if let (Some(_created), Some(_completed)) = (result["created_at"].as_str(), result["completed_at"].as_str()) {
+            if let (Some(_created), Some(_completed)) = (
+                result["created_at"].as_str(),
+                result["completed_at"].as_str(),
+            ) {
                 println!("⏱️  Processing completed successfully");
             }
         }

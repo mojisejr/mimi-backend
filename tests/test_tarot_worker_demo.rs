@@ -71,7 +71,9 @@ async fn test_tarot_worker_demo() -> Result<(), Box<dyn std::error::Error>> {
                     }
 
                     // Cards drawn
-                    if let Some(cards_array) = result.get("cards_reading").and_then(|v| v.as_array()) {
+                    if let Some(cards_array) =
+                        result.get("cards_reading").and_then(|v| v.as_array())
+                    {
                         println!("\n🃏 Cards Drawn:");
                         for (i, card) in cards_array.iter().enumerate() {
                             if let Some(card_str) = card.as_str() {
@@ -87,7 +89,8 @@ async fn test_tarot_worker_demo() -> Result<(), Box<dyn std::error::Error>> {
                     }
 
                     // Suggestions
-                    if let Some(suggestions) = result.get("suggestions").and_then(|v| v.as_array()) {
+                    if let Some(suggestions) = result.get("suggestions").and_then(|v| v.as_array())
+                    {
                         println!("\n💡 Suggestions:");
                         for suggestion in suggestions {
                             if let Some(s) = suggestion.as_str() {
