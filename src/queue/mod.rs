@@ -15,7 +15,7 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 
-pub use tarot_queue::{PendingCount, ReadingResult, ReadingSubmissionResult, TarotQueue};
+pub use tarot_queue::{Job, PendingCount, ReadingResult, ReadingSubmissionResult, TarotQueue};
 pub use types::{JobMetadata, JobPayload, JobType};
 
 /// Job status enumeration

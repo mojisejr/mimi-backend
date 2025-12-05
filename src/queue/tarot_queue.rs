@@ -10,6 +10,11 @@ use std::error::Error;
 use std::sync::Arc;
 use uuid::Uuid;
 
+/// Helper function to convert JSON value to i32
+fn as_i32(v: &serde_json::Value) -> Option<i32> {
+    v.as_u64().and_then(|u| i32::try_from(u).ok())
+}
+
 /// Tarot Queue - Tarot-specific queue operations
 ///
 /// Provides high-level operations specifically designed for tarot reading workflows.
@@ -18,6 +23,21 @@ use uuid::Uuid;
 pub struct TarotQueue {
     /// Job repository for database operations
     repository: JobRepository,
+    /// Database connection pool (exposed for testing)
+    pub db_pool: PgPool,
+}
+
+/// Job data for worker processing
+#[derive(Debug)]
+pub struct Job {
+    /// Unique job identifier
+    pub id: Uuid,
+    /// Tarot reading question
+    pub question: String,
+    /// Number of cards to draw
+    pub cards: i32,
+    /// When the job was created
+    pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
 impl TarotQueue {
@@ -28,8 +48,9 @@ impl TarotQueue {
     /// * `pool` - PostgreSQL connection pool
     /// * `queue` - Queue implementation (Redis, Upstash, InMemory)
     pub fn new(pool: PgPool, queue: Arc<dyn Queue + Send + Sync>) -> Self {
+        let db_pool = pool.clone();
         let repository = JobRepository::new(pool, queue);
-        Self { repository }
+        Self { repository, db_pool }
     }
 
     /// Submit tarot reading request
@@ -203,31 +224,73 @@ impl TarotQueue {
                 Arc::new(InMemoryQueue::new())
             };
 
-        Ok(Self::new(pool, queue))
+        Ok(Self::new(pool.clone(), queue))
     }
 
     /// Poll for the next available job
     ///
-    /// This method retrieves the next job from the queue for processing.
-    /// For now, this is a stub implementation that will be fully implemented in Slice 4.
+    /// This method retrieves the next queued job from the database for processing.
+    /// It uses FOR UPDATE SKIP LOCKED to ensure safe concurrent processing.
     ///
     /// # Returns
     ///
-    /// * `Ok(Option<ReadingJob>)` - Next available job, or None if no jobs available
+    /// * `Ok(Option<Job>)` - Next available job, or None if no jobs available
     /// * `Err(Box<dyn Error>)` - Error if polling failed
-    pub async fn poll_next_job(
-        &self,
-    ) -> Result<Option<crate::models::job_types::ReadingJob>, Box<dyn Error>> {
-        // TODO: This is a stub implementation for Slice 3
-        // Full implementation will be in Slice 4
-        println!("🔍 Polling for next job (stub implementation)");
-        Ok(None) // Return None for now - no jobs available in stub
+    pub async fn poll_next_job(&self) -> Result<Option<Job>, Box<dyn Error>> {
+        let job = sqlx::query!(
+            r#"
+            SELECT
+                id,
+                payload,
+                created_at
+            FROM jobs
+            WHERE status = 'queued'
+            ORDER BY created_at ASC
+            LIMIT 1
+            FOR UPDATE SKIP LOCKED
+            "#
+        )
+        .fetch_optional(&self.db_pool)
+        .await?;
+
+        match job {
+            Some(record) => {
+                // Mark as processing to prevent duplicate processing
+                sqlx::query!(
+                    "UPDATE jobs SET status = 'processing' WHERE id = $1",
+                    record.id
+                )
+                .execute(&self.db_pool)
+                .await?;
+
+                // Extract question and card_count from payload
+                let payload = record.payload;
+                let question = payload
+                    .get("question")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("Unknown question")
+                    .to_string();
+                let cards = payload
+                    .get("card_count")
+                    .and_then(as_i32)
+                    .unwrap_or(3);
+
+                Ok(Some(Job {
+                    id: record.id,
+                    question,
+                    cards,
+                    created_at: record.created_at.unwrap_or_else(chrono::Utc::now),
+                }))
+            }
+            None => Ok(None),
+        }
     }
 
+    
     /// Update job status
     ///
-    /// This method updates the status of a job in the queue.
-    /// For now, this is a stub implementation that will be fully implemented in Slice 4.
+    /// This method updates the status of a job in the database.
+    /// It validates status values and optionally stores result data.
     ///
     /// # Arguments
     ///
@@ -245,16 +308,66 @@ impl TarotQueue {
         status: &str,
         result: Option<serde_json::Value>,
     ) -> Result<(), Box<dyn Error>> {
-        // TODO: This is a stub implementation for Slice 3
-        // Full implementation will be in Slice 4
-        println!(
-            "📝 Updating job {} status to '{}' (stub implementation)",
-            job_id, status
-        );
-        if let Some(result_data) = result {
-            println!("   Result data: {}", result_data);
+        let status = match status {
+            "processing" | "completed" | "failed" => status,
+            _ => return Err(format!("Invalid status: {}", status).into()),
+        };
+
+        match result {
+            Some(result_json) => {
+                if status == "completed" {
+                    sqlx::query(
+                        r#"
+                        UPDATE jobs
+                        SET
+                            status = $1,
+                            result = $2,
+                            completed_at = NOW(),
+                            updated_at = NOW()
+                        WHERE id = $3
+                        "#
+                    )
+                    .bind(status)
+                    .bind(result_json)
+                    .bind(job_id)
+                    .execute(&self.db_pool)
+                    .await?;
+                } else {
+                    sqlx::query(
+                        r#"
+                        UPDATE jobs
+                        SET
+                            status = $1,
+                            result = $2,
+                            updated_at = NOW()
+                        WHERE id = $3
+                        "#
+                    )
+                    .bind(status)
+                    .bind(result_json)
+                    .bind(job_id)
+                    .execute(&self.db_pool)
+                    .await?;
+                }
+            }
+            None => {
+                sqlx::query(
+                    r#"
+                    UPDATE jobs
+                    SET
+                        status = $1,
+                        updated_at = NOW()
+                    WHERE id = $2
+                    "#
+                )
+                .bind(status)
+                .bind(job_id)
+                .execute(&self.db_pool)
+                .await?;
+            }
         }
-        Ok(()) // Always succeed for now
+
+        Ok(())
     }
 }
 

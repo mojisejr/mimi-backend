@@ -133,38 +133,15 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
                 info!(
                     "📋 Found job: {} (question: \"{}\", cards: {})",
                     job.id,
-                    job.payload
-                        .0
-                        .get("question")
-                        .and_then(|v| v.as_str())
-                        .unwrap_or("Unknown question"),
-                    job.payload
-                        .0
-                        .get("card_count")
-                        .and_then(|v| v.as_u64())
-                        .unwrap_or(3)
+                    job.question,
+                    job.cards
                 );
 
-                // Update to processing
-                if let Err(e) = queue.update_job_status(job.id, "processing", None).await {
-                    info!("⚠️  Failed to update job status: {}", e);
-                } else {
-                    info!("🔄 Status updated to 'processing'");
-                }
+                // Note: Job is already marked as processing in poll_next_job()
 
-                // Extract question and card count from job payload
-                let question = job
-                    .payload
-                    .0
-                    .get("question")
-                    .and_then(|v| v.as_str())
-                    .unwrap_or("Default question");
-                let card_count = job
-                    .payload
-                    .0
-                    .get("card_count")
-                    .and_then(|v| v.as_u64())
-                    .unwrap_or(3) as u32;
+                // Use the question and cards directly from the Job struct
+                let question = job.question.as_str();
+                let card_count = job.cards as u32;
 
                 // Process through 3-agent pipeline
                 match worker.process_reading_job(question, card_count).await {
