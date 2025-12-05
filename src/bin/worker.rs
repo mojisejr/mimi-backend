@@ -8,6 +8,7 @@
 //! - Thread-safe Arc<HashMap> for prompt storage
 //! - AI pipeline integration for tarot readings
 
+use mimivibe_backend::queue::TarotQueue;
 use mimivibe_backend::repository::PromptRepository;
 use mimivibe_backend::worker::TarotWorker;
 use std::collections::HashMap;
@@ -103,6 +104,11 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
     // Load prompts cache from database
     let _prompt_cache = load_prompts_cache(&db_pool).await;
 
+    // Connect to TarotQueue
+    info!("🔄 Connecting to tarot job queue...");
+    let _queue = TarotQueue::from_env().await?;
+    info!("✅ Connected to tarot job queue");
+
     let worker_id =
         env::var("WORKER_ID").unwrap_or_else(|_| format!("worker-{}", uuid::Uuid::new_v4()));
 
@@ -117,6 +123,7 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
     info!("  - Poll interval: 5 seconds");
 
     // Demonstrate worker functionality
+    info!("🔮 Queue connection ready for polling implementation");
     info!("🚀 Demonstrating AI pipeline functionality...");
 
     // Example job processing
