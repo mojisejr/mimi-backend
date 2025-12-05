@@ -73,11 +73,21 @@ async fn load_prompts_cache(pool: &sqlx::PgPool) -> PromptCache {
     }
 }
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Initialize tracing
     tracing_subscriber::fmt::init();
 
+    // Create and run Tokio runtime manually
+    let rt = tokio::runtime::Runtime::new()?;
+    rt.block_on(async_main())?;
+    Ok(())
+}
+
+/// Main async function containing the worker logic
+///
+/// This function contains all the async operations that were previously
+/// in the main function when using #[tokio::main]
+async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
     info!("Starting MimiVibe Worker process...");
 
     // Load environment variables
@@ -96,9 +106,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let worker_id =
         env::var("WORKER_ID").unwrap_or_else(|_| format!("worker-{}", uuid::Uuid::new_v4()));
 
-    // Create worker instance
+    // Create worker instance with async initialization
     info!("Creating TarotWorker with ID: {}", worker_id);
-    let mut worker = TarotWorker::new(worker_id.clone())?;
+    let mut worker = TarotWorker::new_async(worker_id.clone()).await?;
 
     // Display worker configuration
     info!("Worker configuration:");

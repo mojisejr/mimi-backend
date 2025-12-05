@@ -29,11 +29,24 @@ pub struct TarotWorker {
 }
 
 impl TarotWorker {
-    /// Create a new TarotWorker instance
+    /// Create a new TarotWorker instance (synchronous version)
     pub fn new(worker_id: String) -> Result<Self, WorkerError> {
         Ok(Self {
             worker_id,
             ai_pipeline: AIPipelineService::default(),
+            poll_interval: Duration::from_secs(5),
+        })
+    }
+
+    /// Create a new TarotWorker instance (async version to avoid runtime conflicts)
+    pub async fn new_async(worker_id: String) -> Result<Self, WorkerError> {
+        let ai_pipeline = AIPipelineService::new()
+            .await
+            .map_err(|e| WorkerError::PipelineError(e.to_string()))?;
+
+        Ok(Self {
+            worker_id,
+            ai_pipeline,
             poll_interval: Duration::from_secs(5),
         })
     }
