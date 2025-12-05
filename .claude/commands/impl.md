@@ -68,6 +68,8 @@ Implementation Workflow - Execute GitHub issue implementation.
    - Write comprehensive unit tests for the new functionality
    - Write integration tests for API endpoints or service integrations
    - Tests document the expected behavior before code exists
+   - **CRITICAL**: Use `mod setup;` at top of test file to auto-load `.env`
+   - **CRITICAL**: Do NOT use `#[ignore]` - setup.rs loads environment automatically
    - This ensures Test-Driven Development (TDD) workflow
 
 4. **Implementation Execution**:
@@ -82,10 +84,11 @@ Implementation Workflow - Execute GitHub issue implementation.
    ✅ Test must be written BEFORE code implementation (Red Phase)
    ✅ Test coverage must be comprehensive for new/modified code
    ✅ Tests must PASS (Green Phase complete)
+   ✅ Tests automatically load .env via setup::setup() in test files
+   cargo test                     # Test validation (MANDATORY - runs all tests auto)
    cargo build --release          # Build validation
-   cargo clippy -- -D warnings    # Lint validation
-   cargo check                    # Type check validation
-   cargo test                     # Test validation (MANDATORY)
+   cargo clippy -- -D warnings    # Lint validation (deny warnings)
+   cargo fmt -- --check           # Format validation (no changes)
    ```
 
 ## 🔴🟢🔵 Red-Green-Refactor Cycle (TDD)
@@ -99,14 +102,18 @@ The Red-Green-Refactor cycle is the core of Test-Driven Development:
 - Example:
   ```rust
   // tests/question_filter_tests.rs
+  mod setup;  // AUTO-LOAD .env via tests/setup.rs
+
   #[test]
   fn test_empty_question_rejected() {
+    setup::setup();  // Load .env environment before test
     let result = filter_question("");
     assert!(result.is_err());
   }
-  
+
   #[test]
   fn test_valid_question_accepted() {
+    setup::setup();  // Load .env environment before test
     let result = filter_question("What is my future?");
     assert!(result.is_ok());
   }
@@ -147,24 +154,25 @@ The Red-Green-Refactor cycle is the core of Test-Driven Development:
 ### Complete TDD Workflow Example
 ```bash
 # Step 1: RED - Create failing tests
-# Write test file: tests/question_filter_tests.rs
+# Write test file: tests/question_filter_tests.rs with mod setup;
 cargo test                                  # → FAILS (no implementation)
 
 # Step 2: GREEN - Implement minimal code
 # Write code: src/agents/question_filter.rs
-cargo test                                  # → PASSES
+cargo test                                  # → PASSES (tests run automatically with .env)
 cargo build --release                       # → Success
 
 # Step 3: REFACTOR - Improve code quality
 # Improve implementation while keeping tests passing
 cargo clippy -- -D warnings                 # → Zero warnings
-cargo fmt                                   # → Formatted
+cargo fmt -- --check                        # → Formatted (no changes)
 cargo test                                  # → Still PASSES
 
 # Final validation
 cargo build --release                       # ✅ 100% SUCCESS
 cargo clippy -- -D warnings                 # ✅ 100% SUCCESS
-cargo test                                  # ✅ 100% SUCCESS
+cargo fmt -- --check                        # ✅ 100% SUCCESS
+cargo test                                  # ✅ 100% SUCCESS (auto-loaded .env)
 ```
 
 ## Validation Requirements (100% required):
@@ -178,7 +186,7 @@ cargo test                                  # ✅ 100% SUCCESS
    - Red-Green-Refactor cycle followed (Red → Green → Refactor)
    - Build validation: 100% PASS (cargo build --release)
    - Lint validation: 100% PASS (cargo clippy -- -D warnings)
-   - Type validation: 100% PASS (cargo check)
+   - Format validation: 100% PASS (cargo fmt -- --check)
 
    🤖 Generated with Claude Code
    Co-Authored-By: Claude <noreply@anthropic.com>"
