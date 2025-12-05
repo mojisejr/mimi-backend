@@ -5,6 +5,7 @@
 // pub mod reading_job; // Temporarily excluded due to database schema issues
 pub mod job_types;
 pub mod prompt;
+pub mod prompt_store;
 pub mod question_analyzer;
 pub mod question_filter;
 pub mod reading_agent;
@@ -20,6 +21,7 @@ pub mod tarot_request;
 // Use selective imports to avoid ambiguous re-exports
 pub use job_types::*;
 pub use prompt::*;
+pub use prompt_store::StoredPrompt;
 pub use question_analyzer::*;
 pub use question_filter::*;
 pub use reading_agent::*;
