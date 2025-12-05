@@ -5,6 +5,8 @@
 
 pub mod dedupe;
 pub mod job_repository;
+pub mod prompt_repository;
 pub mod soft_delete;
 
 pub use job_repository::*;
+pub use prompt_repository::{PromptRepository, PromptRepositoryError};
