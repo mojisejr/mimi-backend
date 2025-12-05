@@ -132,9 +132,7 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
             Ok(Some(job)) => {
                 info!(
                     "📋 Found job: {} (question: \"{}\", cards: {})",
-                    job.id,
-                    job.question,
-                    job.cards
+                    job.id, job.question, job.cards
                 );
 
                 // Note: Job is already marked as processing in poll_next_job()

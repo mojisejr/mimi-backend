@@ -4,10 +4,10 @@
 //! These tests are written before implementation (Red-Green-Refactor TDD).
 
 use mimivibe_backend::queue::TarotQueue;
-use uuid::Uuid;
 use serde_json::json;
+use uuid::Uuid;
 
-mod setup;  // AUTO-LOAD .env via tests/setup.rs
+mod setup; // AUTO-LOAD .env via tests/setup.rs
 
 #[tokio::test]
 async fn test_poll_next_job_empty_queue() {
@@ -102,7 +102,10 @@ async fn test_update_job_status() {
     .unwrap();
 
     // Update to completed without result
-    queue.update_job_status(job_id, "completed", None).await.unwrap();
+    queue
+        .update_job_status(job_id, "completed", None)
+        .await
+        .unwrap();
 
     // Verify final state
     let final_job = sqlx::query!(
@@ -147,7 +150,10 @@ async fn test_update_job_status_with_result() {
         "reading": "การงานของคุณจะดีขึ้นในเร็วๆ นี้",
         "cards": ["The Fool", "The Magician", "The Star"]
     });
-    queue.update_job_status(job_id, "completed", Some(result.clone())).await.unwrap();
+    queue
+        .update_job_status(job_id, "completed", Some(result.clone()))
+        .await
+        .unwrap();
 
     // Verify final state
     let final_job = sqlx::query!(
@@ -189,7 +195,10 @@ async fn test_update_job_status_failed() {
     .unwrap();
 
     // Update to failed
-    queue.update_job_status(job_id, "failed", None).await.unwrap();
+    queue
+        .update_job_status(job_id, "failed", None)
+        .await
+        .unwrap();
 
     // Verify final state
     let final_job = sqlx::query!(
@@ -228,7 +237,9 @@ async fn test_update_job_status_invalid_status() {
     .unwrap();
 
     // Try to update with invalid status
-    let result = queue.update_job_status(job_id, "invalid_status", None).await;
+    let result = queue
+        .update_job_status(job_id, "invalid_status", None)
+        .await;
     assert!(result.is_err(), "Expected error for invalid status");
 }
 
@@ -287,7 +298,10 @@ async fn test_full_job_lifecycle() {
         "reading": "ชีวิตของคุณจะมีการเปลี่ยนแปลงครั้งใหญ่ในเดือนหน้า",
         "cards": ["The Fool", "The Tower", "The Star", "The Sun", "The World"]
     });
-    queue.update_job_status(job_id, "completed", Some(result)).await.unwrap();
+    queue
+        .update_job_status(job_id, "completed", Some(result))
+        .await
+        .unwrap();
 
     // Verify final state
     let final_job = sqlx::query!(
