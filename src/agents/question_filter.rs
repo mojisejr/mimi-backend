@@ -6,6 +6,7 @@
 
 use crate::utils::gemini::{GeminiClient, GeminiError};
 use crate::utils::prompt_manager::PromptManager;
+use std::collections::HashMap;
 use std::sync::Arc;
 use thiserror::Error;
 
@@ -81,6 +82,60 @@ impl QuestionFilter {
             prompt_manager: Arc::new(prompt_manager),
             min_length,
             max_length,
+        })
+    }
+
+    /// Create a QuestionFilter with prompt cache (preferred for database prompts)
+    pub async fn with_prompt_cache(
+        prompt_cache: Arc<HashMap<String, String>>,
+    ) -> Result<Self, QuestionFilterError> {
+        let prompt_manager = PromptManager::with_cache(prompt_cache);
+
+        Ok(Self {
+            client: GeminiClient::new()?,
+            prompt_manager: Arc::new(prompt_manager),
+            min_length: 5,
+            max_length: 500,
+        })
+    }
+
+    /// Create a QuestionFilter with prompt cache and custom limits
+    pub async fn with_prompt_cache_and_limits(
+        prompt_cache: Arc<HashMap<String, String>>,
+        min_length: usize,
+        max_length: usize,
+    ) -> Result<Self, QuestionFilterError> {
+        if min_length >= max_length {
+            return Err(QuestionFilterError::ValidationFailed {
+                reason: "Minimum length cannot be greater than or equal to maximum length"
+                    .to_string(),
+            });
+        }
+
+        let prompt_manager = PromptManager::with_cache(prompt_cache);
+
+        Ok(Self {
+            client: GeminiClient::new()?,
+            prompt_manager: Arc::new(prompt_manager),
+            min_length,
+            max_length,
+        })
+    }
+
+    /// Create a QuestionFilter with fallback (database cache + environment fallback)
+    pub async fn with_fallback(
+        prompt_cache: Arc<HashMap<String, String>>,
+    ) -> Result<Self, QuestionFilterError> {
+        let config = crate::config::env::EnvironmentConfig::from_env()
+            .map_err(|e| QuestionFilterError::ConfigError(e.to_string()))?;
+
+        let prompt_manager = PromptManager::with_fallback(config, prompt_cache);
+
+        Ok(Self {
+            client: GeminiClient::new()?,
+            prompt_manager: Arc::new(prompt_manager),
+            min_length: 5,
+            max_length: 500,
         })
     }
 

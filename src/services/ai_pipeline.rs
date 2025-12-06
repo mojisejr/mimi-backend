@@ -13,6 +13,8 @@ use crate::{
     services::CardRandomizer,
 };
 use serde_json::json;
+use std::collections::HashMap;
+use std::sync::Arc;
 use thiserror::Error;
 
 /// Error types for AI pipeline processing
@@ -92,6 +94,54 @@ impl AIPipelineService {
                     reason: format!("Failed to create ReadingAgent: {}", e),
                 }
             })?,
+            card_randomizer: CardRandomizer::new(),
+        })
+    }
+
+    /// Create a new AI Pipeline Service with prompt cache (preferred for database prompts)
+    pub async fn with_prompt_cache(
+        prompt_cache: Arc<HashMap<String, String>>,
+    ) -> Result<Self, AIPipelineError> {
+        Ok(Self {
+            question_filter: QuestionFilter::with_prompt_cache(prompt_cache.clone())
+                .await
+                .map_err(|e| AIPipelineError::ConfigurationError {
+                    reason: format!("Failed to create QuestionFilter: {}", e),
+                })?,
+            question_analyzer: QuestionAnalyzer::with_prompt_cache(prompt_cache.clone())
+                .await
+                .map_err(|e| AIPipelineError::ConfigurationError {
+                    reason: format!("Failed to create QuestionAnalyzer: {}", e),
+                })?,
+            reading_agent: ReadingAgent::with_prompt_cache(prompt_cache)
+                .await
+                .map_err(|e| AIPipelineError::ConfigurationError {
+                    reason: format!("Failed to create ReadingAgent: {}", e),
+                })?,
+            card_randomizer: CardRandomizer::new(),
+        })
+    }
+
+    /// Create a new AI Pipeline Service with fallback (database cache + environment fallback)
+    pub async fn with_fallback(
+        prompt_cache: Arc<HashMap<String, String>>,
+    ) -> Result<Self, AIPipelineError> {
+        Ok(Self {
+            question_filter: QuestionFilter::with_fallback(prompt_cache.clone())
+                .await
+                .map_err(|e| AIPipelineError::ConfigurationError {
+                    reason: format!("Failed to create QuestionFilter: {}", e),
+                })?,
+            question_analyzer: QuestionAnalyzer::with_fallback(prompt_cache.clone())
+                .await
+                .map_err(|e| AIPipelineError::ConfigurationError {
+                    reason: format!("Failed to create QuestionAnalyzer: {}", e),
+                })?,
+            reading_agent: ReadingAgent::with_fallback(prompt_cache)
+                .await
+                .map_err(|e| AIPipelineError::ConfigurationError {
+                    reason: format!("Failed to create ReadingAgent: {}", e),
+                })?,
             card_randomizer: CardRandomizer::new(),
         })
     }

@@ -1,11 +1,16 @@
 //! Prompt Management
 //!
-//! Loads and manages system prompts for different agent stages using base64 encoded
-//! templates stored in environment variables with dynamic template rendering.
+//! Loads and manages system prompts for different agent stages using either:
+//! 1. Base64 encoded templates stored in environment variables (legacy)
+//! 2. Direct prompts from database cache (preferred)
+//!
+//! Supports dynamic template rendering with context substitution.
 
 use crate::config::env::EnvironmentConfig;
 use crate::models::prompt::PromptRenderContext;
 use base64::{engine::general_purpose, Engine as _};
+use std::collections::HashMap;
+use std::sync::Arc;
 use thiserror::Error;
 
 /// Error types for prompt management
@@ -13,6 +18,9 @@ use thiserror::Error;
 pub enum PromptError {
     #[error("Missing prompt environment variable: {variable}")]
     MissingEnvironment { variable: String },
+
+    #[error("Missing prompt for agent: {agent_name}")]
+    MissingPrompt { agent_name: String },
 
     #[error("Failed to decode base64 prompt: {variable}")]
     Base64Decode {
@@ -31,19 +39,44 @@ pub enum PromptError {
     EmptyTemplate { agent_name: String },
 }
 
-/// Prompt Manager for loading and rendering encoded prompt templates
+/// Prompt Manager for loading and rendering prompt templates
+/// Can use either environment variables (legacy) or database cache (preferred)
 #[derive(Debug, Clone)]
 pub struct PromptManager {
-    config: EnvironmentConfig,
+    config: Option<EnvironmentConfig>,
+    prompt_cache: Option<Arc<HashMap<String, String>>>,
 }
 
 impl PromptManager {
-    /// Create a new PromptManager instance with the given configuration
+    /// Create a new PromptManager instance with environment configuration (legacy)
     pub fn new(config: EnvironmentConfig) -> Self {
-        Self { config }
+        Self {
+            config: Some(config),
+            prompt_cache: None,
+        }
+    }
+
+    /// Create a new PromptManager instance with database prompt cache (preferred)
+    pub fn with_cache(prompt_cache: Arc<HashMap<String, String>>) -> Self {
+        Self {
+            config: None,
+            prompt_cache: Some(prompt_cache),
+        }
+    }
+
+    /// Create a new PromptManager instance with both config and cache (cache takes priority)
+    pub fn with_fallback(config: EnvironmentConfig, prompt_cache: Arc<HashMap<String, String>>) -> Self {
+        Self {
+            config: Some(config),
+            prompt_cache: Some(prompt_cache),
+        }
     }
 
     /// Load and decode a prompt for the specified agent
+    ///
+    /// Priority order:
+    /// 1. Database cache (preferred)
+    /// 2. Environment variables (fallback)
     ///
     /// # Arguments
     ///
@@ -51,38 +84,64 @@ impl PromptManager {
     ///
     /// # Returns
     ///
-    /// * `Ok(String)` - Decoded prompt template
-    /// * `Err(PromptError)` - Error loading or decoding the prompt
+    /// * `Ok(String)` - Prompt template (decoded if from environment, direct if from cache)
+    /// * `Err(PromptError)` - Error loading the prompt
     pub fn load_prompt(&self, agent_name: &str) -> Result<String, PromptError> {
-        let (encoded_prompt, env_var_name) = match agent_name {
-            "question_filter" => (
-                &self.config.question_filter_prompt,
-                "QUESTION_FILTER_PROMPT",
-            ),
-            "question_analyzer" => (
-                &self.config.question_analyzer_prompt,
-                "QUESTION_ANALYZER_PROMPT",
-            ),
-            "reading_agent" => (&self.config.reading_agent_prompt, "READING_AGENT_PROMPT"),
-            _ => {
-                return Err(PromptError::TemplateError {
-                    message: format!("Unknown agent: {}", agent_name),
-                })
-            }
-        };
-
-        if encoded_prompt.is_empty() {
-            return Err(PromptError::MissingEnvironment {
-                variable: env_var_name.to_string(),
+        // Validate agent name
+        if !["question_filter", "question_analyzer", "reading_agent"].contains(&agent_name) {
+            return Err(PromptError::TemplateError {
+                message: format!("Unknown agent: {}", agent_name),
             });
         }
 
-        self.decode_base64(encoded_prompt).map_err(|e| match e {
-            PromptError::Base64Decode { source, .. } => PromptError::Base64Decode {
-                variable: env_var_name.to_string(),
-                source,
-            },
-            _ => e,
+        // Try database cache first (preferred)
+        if let Some(ref cache) = self.prompt_cache {
+            if let Some(prompt) = cache.get(agent_name) {
+                if prompt.is_empty() {
+                    return Err(PromptError::EmptyTemplate {
+                        agent_name: agent_name.to_string(),
+                    });
+                }
+                return Ok(prompt.clone());
+            }
+        }
+
+        // Fallback to environment variables
+        if let Some(ref config) = self.config {
+            let (encoded_prompt, env_var_name) = match agent_name {
+                "question_filter" => (
+                    &config.question_filter_prompt,
+                    "QUESTION_FILTER_PROMPT",
+                ),
+                "question_analyzer" => (
+                    &config.question_analyzer_prompt,
+                    "QUESTION_ANALYZER_PROMPT",
+                ),
+                "reading_agent" => (
+                    &config.reading_agent_prompt,
+                    "READING_AGENT_PROMPT",
+                ),
+                _ => unreachable!(), // We validated above
+            };
+
+            if encoded_prompt.is_empty() {
+                return Err(PromptError::MissingEnvironment {
+                    variable: env_var_name.to_string(),
+                });
+            }
+
+            return self.decode_base64(encoded_prompt).map_err(|e| match e {
+                PromptError::Base64Decode { source, .. } => PromptError::Base64Decode {
+                    variable: env_var_name.to_string(),
+                    source,
+                },
+                _ => e,
+            });
+        }
+
+        // Neither cache nor config available
+        Err(PromptError::MissingPrompt {
+            agent_name: agent_name.to_string(),
         })
     }
 
@@ -158,9 +217,21 @@ impl PromptManager {
     /// * `String` - Version string (e.g., "v1")
     pub fn get_prompt_version(&self, agent_name: &str) -> String {
         match agent_name {
-            "question_filter" => self.config.question_filter_version.clone(),
-            "question_analyzer" => self.config.question_analyzer_version.clone(),
-            "reading_agent" => self.config.reading_agent_version.clone(),
+            "question_filter" => self
+                .config
+                .as_ref()
+                .map(|c| c.question_filter_version.clone())
+                .unwrap_or_else(|| "v1".to_string()),
+            "question_analyzer" => self
+                .config
+                .as_ref()
+                .map(|c| c.question_analyzer_version.clone())
+                .unwrap_or_else(|| "v1".to_string()),
+            "reading_agent" => self
+                .config
+                .as_ref()
+                .map(|c| c.reading_agent_version.clone())
+                .unwrap_or_else(|| "v1".to_string()),
             _ => "unknown".to_string(),
         }
     }

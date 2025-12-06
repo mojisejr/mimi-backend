@@ -5,6 +5,8 @@
 
 use crate::{services::AIPipelineService, utils::gemini::GeminiError};
 use serde_json::Value;
+use std::collections::HashMap;
+use std::sync::Arc;
 use std::time::Duration;
 use thiserror::Error;
 use tracing::info;
@@ -41,6 +43,38 @@ impl TarotWorker {
     /// Create a new TarotWorker instance (async version to avoid runtime conflicts)
     pub async fn new_async(worker_id: String) -> Result<Self, WorkerError> {
         let ai_pipeline = AIPipelineService::new()
+            .await
+            .map_err(|e| WorkerError::PipelineError(e.to_string()))?;
+
+        Ok(Self {
+            worker_id,
+            ai_pipeline,
+            poll_interval: Duration::from_secs(5),
+        })
+    }
+
+    /// Create a new TarotWorker instance with prompt cache (preferred for database prompts)
+    pub async fn with_prompt_cache(
+        worker_id: String,
+        prompt_cache: Arc<HashMap<String, String>>,
+    ) -> Result<Self, WorkerError> {
+        let ai_pipeline = AIPipelineService::with_prompt_cache(prompt_cache)
+            .await
+            .map_err(|e| WorkerError::PipelineError(e.to_string()))?;
+
+        Ok(Self {
+            worker_id,
+            ai_pipeline,
+            poll_interval: Duration::from_secs(5),
+        })
+    }
+
+    /// Create a new TarotWorker instance with fallback (database cache + environment fallback)
+    pub async fn with_fallback(
+        worker_id: String,
+        prompt_cache: Arc<HashMap<String, String>>,
+    ) -> Result<Self, WorkerError> {
+        let ai_pipeline = AIPipelineService::with_fallback(prompt_cache)
             .await
             .map_err(|e| WorkerError::PipelineError(e.to_string()))?;
 
