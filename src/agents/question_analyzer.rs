@@ -10,6 +10,7 @@ use crate::models::question_analyzer::QuestionAnalyzerResponse;
 use crate::utils::gemini::{GeminiClient, GeminiError};
 use crate::utils::prompt_manager::{PromptError, PromptManager};
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::sync::Arc;
 use thiserror::Error;
 
@@ -86,6 +87,33 @@ impl QuestionAnalyzer {
             .map_err(|e| QuestionAnalyzerError::ConfigError(e.to_string()))?;
 
         let prompt_manager = PromptManager::new(config);
+
+        Ok(Self {
+            client: GeminiClient::new()?,
+            prompt_manager: Arc::new(prompt_manager),
+        })
+    }
+
+    /// Create a QuestionAnalyzer with prompt cache (preferred for database prompts)
+    pub async fn with_prompt_cache(
+        prompt_cache: Arc<HashMap<String, String>>,
+    ) -> Result<Self, QuestionAnalyzerError> {
+        let prompt_manager = PromptManager::with_cache(prompt_cache);
+
+        Ok(Self {
+            client: GeminiClient::new()?,
+            prompt_manager: Arc::new(prompt_manager),
+        })
+    }
+
+    /// Create a QuestionAnalyzer with fallback (database cache + environment fallback)
+    pub async fn with_fallback(
+        prompt_cache: Arc<HashMap<String, String>>,
+    ) -> Result<Self, QuestionAnalyzerError> {
+        let config = EnvironmentConfig::from_env()
+            .map_err(|e| QuestionAnalyzerError::ConfigError(e.to_string()))?;
+
+        let prompt_manager = PromptManager::with_fallback(config, prompt_cache);
 
         Ok(Self {
             client: GeminiClient::new()?,

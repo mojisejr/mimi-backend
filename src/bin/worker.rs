@@ -104,7 +104,7 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
     info!("✅ Database connection pool initialized");
 
     // Load prompts cache from database
-    let _prompt_cache = load_prompts_cache(&db_pool).await;
+    let prompt_cache = load_prompts_cache(&db_pool).await;
 
     // Connect to TarotQueue
     info!("🔄 Connecting to tarot job queue...");
@@ -114,9 +114,9 @@ async fn async_main() -> Result<(), Box<dyn std::error::Error>> {
     let worker_id =
         env::var("WORKER_ID").unwrap_or_else(|_| format!("worker-{}", uuid::Uuid::new_v4()));
 
-    // Create worker instance with async initialization
-    info!("Creating TarotWorker with ID: {}", worker_id);
-    let mut worker = TarotWorker::new_async(worker_id.clone()).await?;
+    // Create worker instance with prompt cache (using database prompts)
+    info!("Creating TarotWorker with ID: {} (using database prompts)", worker_id);
+    let mut worker = TarotWorker::with_fallback(worker_id.clone(), prompt_cache).await?;
 
     // Display worker configuration
     info!("Worker configuration:");

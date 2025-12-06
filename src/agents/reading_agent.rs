@@ -7,6 +7,7 @@ use crate::config::env::EnvironmentConfig;
 use crate::models::reading_agent::*;
 use crate::utils::gemini::GeminiClient;
 use crate::utils::prompt_manager::PromptManager;
+use std::collections::HashMap;
 use std::sync::Arc;
 
 /// Reading Agent with "แม่หมอมีมี่" persona
@@ -23,6 +24,33 @@ impl ReadingAgent {
             .map_err(|e| ReadingAgentError::ConfigError(e.to_string()))?;
 
         let prompt_manager = PromptManager::new(config);
+
+        Ok(Self {
+            client: GeminiClient::new()?,
+            prompt_manager: Arc::new(prompt_manager),
+        })
+    }
+
+    /// Create a ReadingAgent with prompt cache (preferred for database prompts)
+    pub async fn with_prompt_cache(
+        prompt_cache: Arc<HashMap<String, String>>,
+    ) -> Result<Self, ReadingAgentError> {
+        let prompt_manager = PromptManager::with_cache(prompt_cache);
+
+        Ok(Self {
+            client: GeminiClient::new()?,
+            prompt_manager: Arc::new(prompt_manager),
+        })
+    }
+
+    /// Create a ReadingAgent with fallback (database cache + environment fallback)
+    pub async fn with_fallback(
+        prompt_cache: Arc<HashMap<String, String>>,
+    ) -> Result<Self, ReadingAgentError> {
+        let config = EnvironmentConfig::from_env()
+            .map_err(|e| ReadingAgentError::ConfigError(e.to_string()))?;
+
+        let prompt_manager = PromptManager::with_fallback(config, prompt_cache);
 
         Ok(Self {
             client: GeminiClient::new()?,
